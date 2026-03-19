@@ -1,0 +1,67 @@
+import React from 'react';
+import { Bell, Settings, UserCircle, Plus } from 'lucide-react';
+import { GlobalSearch } from './GlobalSearch';
+import { UserRole } from '../types';
+
+interface TopBarProps {
+  onSettingsClick?: () => void;
+  userRole: UserRole;
+  setUserRole: (role: UserRole) => void;
+  currentView: string;
+  onCreateSurvey: () => void;
+}
+
+export function TopBar({ onSettingsClick, userRole, setUserRole, currentView, onCreateSurvey }: TopBarProps) {
+  return (
+    <div className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-50">
+      <div className="flex-1 flex items-center">
+        <GlobalSearch />
+      </div>
+      <div className="flex items-center gap-4 ml-4">
+        {currentView === 'intimation' && (
+          <button 
+            onClick={onCreateSurvey}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm mr-2"
+          >
+            <Plus className="w-4 h-4" />
+            New Survey
+          </button>
+        )}
+        <div className="flex items-center gap-2 mr-2">
+          <UserCircle className="w-4 h-4 text-gray-400" />
+          <select 
+            value={userRole}
+            onChange={(e) => setUserRole(e.target.value as UserRole)}
+            className="text-sm border-none bg-transparent text-gray-600 font-medium focus:ring-0 cursor-pointer hover:text-gray-900"
+          >
+            <option value="handler">Handler</option>
+            <option value="manager">Handling Manager</option>
+            <option value="admin">Global Admin</option>
+          </select>
+        </div>
+        <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors relative">
+          <Bell className="w-5 h-5" />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+        </button>
+        <button 
+          onClick={onSettingsClick}
+          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+        >
+          <Settings className="w-5 h-5" />
+        </button>
+        <div className="h-8 w-px bg-gray-200 mx-2"></div>
+        <div className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg transition-colors">
+          <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
+            JD
+          </div>
+          <div className="text-sm hidden md:block">
+            <p className="font-medium text-gray-900 leading-none">John Doe</p>
+            <p className="text-gray-500 text-xs mt-1 leading-none">
+              {userRole === 'handler' ? 'Survey Handler' : userRole === 'manager' ? 'Handling Manager' : 'Global Admin'}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
