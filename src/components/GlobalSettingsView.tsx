@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DocumentManagement } from './settings/DocumentManagement';
+import { ImageManagement } from './settings/ImageManagement';
 import { UserManagement } from './settings/UserManagement';
+import { RolesAndPermissions } from './settings/RolesAndPermissions';
+import { SurveyConfiguration } from './settings/SurveyConfiguration';
+import { useRBAC } from '../hooks/useRBAC';
 import { 
   Database, 
   ShieldCheck, 
@@ -22,24 +26,36 @@ import {
   MoreVertical,
   Trash2,
   Edit3,
-  Eye
+  Eye,
+  Camera
 } from 'lucide-react';
 
 interface GlobalSettingsViewProps {
   onBack: () => void;
+  userRole: string;
 }
 
-type SettingsSection = 'data-masters' | 'rbac' | 'org' | 'docs' | 'users';
+type SettingsSection = 'data-masters' | 'rbac' | 'org' | 'evidence' | 'users';
 
-export function GlobalSettingsView({ onBack }: GlobalSettingsViewProps) {
-  const [activeSection, setActiveSection] = useState<SettingsSection>('docs');
+export function GlobalSettingsView({ onBack, userRole }: GlobalSettingsViewProps) {
+  const { hasPermission } = useRBAC(userRole);
+
+  const [activeSection, setActiveSection] = useState<SettingsSection>(() => {
+    const saved = localStorage.getItem('cf_settingsSection') as SettingsSection;
+    if (['docs', 'images', 'survey-config'].includes(saved as any)) return 'evidence';
+    return saved || 'evidence';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('cf_settingsSection', activeSection);
+  }, [activeSection]);
 
   const menuItems = [
-    { id: 'org', label: 'Organization Settings', icon: Building2 },
-    { id: 'rbac', label: 'Role Based Access', icon: ShieldCheck },
-    { id: 'users', label: 'User Directory', icon: Users },
-    { id: 'docs', label: 'Document Configuration', icon: FileText },
-    { id: 'data-masters', label: 'Data Masters', icon: Database },
+    { id: 'org',          label: 'Organization Settings', icon: Building2  },
+    { id: 'rbac',         label: 'Roles & Permissions',   icon: ShieldCheck },
+    { id: 'users',        label: 'User Directory',        icon: Users       },
+    { id: 'evidence',     label: 'Evidence Management',   icon: FileText    },
+    { id: 'data-masters', label: 'Data Masters',          icon: Database    },
   ];
 
   return (
@@ -114,19 +130,18 @@ export function GlobalSettingsView({ onBack }: GlobalSettingsViewProps) {
 
         {/* Settings Content */}
         <main className="flex-1 overflow-hidden bg-white flex flex-col">
-          {activeSection === 'docs' ? (
-            <div className="flex-1 h-full p-6">
-              <DocumentManagement />
-            </div>
+          {activeSection === 'evidence' ? (
+            <EvidenceManagementRouter />
           ) : activeSection === 'users' ? (
             <div className="flex-1 h-full p-6">
               <UserManagement />
             </div>
+          ) : activeSection === 'rbac' ? (
+            <RolesAndPermissions />
           ) : (
             <div className="flex-1 overflow-y-auto p-8">
               <div className="max-w-5xl mx-auto">
                 {activeSection === 'org' && <OrgSettings />}
-                {activeSection === 'rbac' && <RbacSettings />}
                 {activeSection === 'data-masters' && <DataMasters />}
               </div>
             </div>
@@ -137,9 +152,42 @@ export function GlobalSettingsView({ onBack }: GlobalSettingsViewProps) {
   );
 }
 
+function EvidenceManagementRouter() {
+  const [activeTab, setActiveTab] = useState<'docs' | 'images' | 'config'>('docs');
 
+  const tabs = [
+    { id: 'docs',   label: 'Document Configuration' },
+    { id: 'images', label: 'Image Configuration' },
+    { id: 'config', label: 'Config | Settings' },
+  ] as const;
 
-
+  return (
+    <div className="flex-1 h-full flex flex-col font-sans">
+      <div className="px-6 py-0 border-b border-gray-200 bg-white flex items-center shrink-0">
+        <div className="flex items-center gap-8">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`py-4 text-sm font-bold border-b-2 transition-colors ${
+                activeTab === tab.id
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex-1 overflow-hidden bg-gray-50/20">
+        {activeTab === 'docs'   && <div className="h-full p-6"><DocumentManagement /></div>}
+        {activeTab === 'images' && <div className="h-full p-6"><ImageManagement /></div>}
+        {activeTab === 'config' && <div className="h-full p-6"><SurveyConfiguration /></div>}
+      </div>
+    </div>
+  );
+}
 
 function OrgSettings() {
   return (
@@ -198,81 +246,6 @@ function OrgSettings() {
   );
 }
 
-function RbacSettings() {
-  const roles = [
-    { id: 'admin', name: 'Global Admin', users: 2, permissions: 'Full System Access', color: 'bg-purple-100 text-purple-700', description: 'Complete access to all system settings, documents, and surveys.' },
-    { id: 'manager', name: 'Handling Manager', users: 5, permissions: 'Manage & Verify', color: 'bg-emerald-100 text-emerald-700', description: 'Can verify/reject documents and oversee handlers.' },
-    { id: 'handler', name: 'Handler (Individual Contributor)', users: 12, permissions: 'Upload & Process', color: 'bg-blue-100 text-blue-700', description: 'Can upload documents and process individual surveys.' },
-  ];
-
-  return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Role Based Access Control</h2>
-          <p className="text-gray-500 mt-1 text-sm">Define roles and manage permissions across your organization.</p>
-        </div>
-      </div>
-
-      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Role Name</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Description</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Permissions</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Users</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {roles.map((role) => (
-              <tr key={role.id} className="hover:bg-gray-50 transition-colors group">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-2 h-2 rounded-full ${role.color.split(' ')[0]}`}></div>
-                    <span className="font-medium text-gray-900">{role.name}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-500">
-                  {role.description}
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${role.color}`}>
-                    {role.permissions}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-gray-400" />
-                    {role.users} users
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-6 bg-gray-50 rounded-2xl border border-gray-200">
-          <Key className="w-6 h-6 text-indigo-600 mb-4" />
-          <h4 className="font-semibold text-gray-900">API Keys</h4>
-          <p className="text-sm text-gray-500 mt-1">Manage service accounts and API access tokens.</p>
-        </div>
-        <div className="p-6 bg-gray-50 rounded-2xl border border-gray-200">
-          <ShieldCheck className="w-6 h-6 text-indigo-600 mb-4" />
-          <h4 className="font-semibold text-gray-900">Audit Logs</h4>
-          <p className="text-sm text-gray-500 mt-1">Track all administrative actions and security events.</p>
-        </div>
-        <div className="p-6 bg-gray-50 rounded-2xl border border-gray-200">
-          <Users className="w-6 h-6 text-indigo-600 mb-4" />
-          <h4 className="font-semibold text-gray-900">User Directory</h4>
-          <p className="text-sm text-gray-500 mt-1">Bulk manage users and their assigned roles.</p>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function DataMasters() {
   const masters = [

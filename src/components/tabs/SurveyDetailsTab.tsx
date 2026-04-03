@@ -27,7 +27,7 @@ export function SurveyDetailsTab({ survey }: { survey: Survey }) {
       .finally(() => setLoadingUsers(false));
   }, []);
 
-  const surveyors = users.filter(u => u.role === 'handler' || u.role === 'manager');
+  const surveyors = users.filter(u => u.role === 'role-handler' || u.role === 'role-manager');
   const [scheduledSurveys, setScheduledSurveys] = useState<ScheduledSurvey[]>([
     {
       id: '1',

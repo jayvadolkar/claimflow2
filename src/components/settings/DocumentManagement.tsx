@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { 
   Search, Plus, Edit2, Trash2, X, Save, Eye, EyeOff, 
   FileText, Check, AlertCircle, Shield, Car, User, 
-  Briefcase, DollarSign, FileWarning, MoreHorizontal,
+  Briefcase, DollarSign, FileWarning, MoreHorizontal, Copy,
   UploadCloud, Settings, ListChecks, Workflow, LayoutTemplate,
   Loader2
 } from 'lucide-react';
 import { INITIAL_DOCS } from '../../data/documents';
 import { DocumentDef, DocCategory, DocField } from '../../types';
+import { api } from '../../services/api';
 import toast from 'react-hot-toast';
 
 const CATEGORIES: { id: DocCategory; icon: any; count: number }[] = [
@@ -22,6 +23,8 @@ const CATEGORIES: { id: DocCategory; icon: any; count: number }[] = [
   { id: 'Other', icon: FileText, count: 2 },
 ];
 
+
+
 export function DocumentManagement() {
   const [activeCategory, setActiveCategory] = useState<DocCategory>('Identity');
   const [searchQuery, setSearchQuery] = useState('');
@@ -29,11 +32,20 @@ export function DocumentManagement() {
   const [isLoading, setIsLoading] = useState(true);
   
   const [editingDoc, setEditingDoc] = useState<DocumentDef | null>(null);
-  const [activeTab, setActiveTab] = useState<'basic' | 'upload' | 'applicability' | 'workflow' | 'fields' | 'rbac'>('basic');
+  const [activeTab, setActiveTab] = useState<'basic' | 'upload' | 'permissions' | 'fields'>('basic');
   const [showPreview, setShowPreview] = useState(false);
+  const [openMenu, setOpenMenu] = useState<{ id: string; top: number; right: number } | null>(null);
+
+  // Users config for permission assignments
+  const [users, setUsers] = useState<any[]>([]);
+  const [rolesData, setRolesData] = useState<any[]>([]);
+  const [assignPopover, setAssignPopover] = useState<{ actionKey: string; top: number; left: number } | null>(null);
+  const [assignSearch, setAssignSearch] = useState('');
 
   useEffect(() => {
     fetchDocuments();
+    api.getUsers().then(setUsers).catch(console.error);
+    api.getRoles().then(setRolesData).catch(console.error);
   }, []);
 
   const fetchDocuments = async () => {
@@ -97,6 +109,20 @@ export function DocumentManagement() {
     saveDocumentsToApi(updatedDocs);
   };
 
+  const handleDuplicate = (doc: DocumentDef) => {
+    const duplicate: DocumentDef = {
+      ...doc,
+      id: `doc-${Date.now()}`,
+      name: `${doc.name} (Copy)`,
+      code: `${doc.code}_COPY`,
+      isSystem: false,
+    };
+    const updatedDocs = [...documents, duplicate];
+    setDocuments(updatedDocs);
+    saveDocumentsToApi(updatedDocs);
+    toast.success(`"${doc.name}" duplicated successfully`);
+  };
+
   const handleCreate = () => {
     const newDoc: DocumentDef = {
       id: `doc-${Date.now()}`,
@@ -114,11 +140,17 @@ export function DocumentManagement() {
       versioning: false,
       vehicleTypes: ['2W', '4W', 'Others'],
       vehicleClasses: ['Commercial', 'Personal'],
-      hypothecation: 'Both',
+      hypothecation: ['Yes', 'No'],
       workflowStage: 'Evidence Collection',
-      uploadRoles: ['handler', 'manager', 'admin'],
-      verifyRoles: ['manager', 'admin'],
-      rejectRoles: ['manager', 'admin'],
+      permissions: {
+        upload: ['role-handler', 'role-manager', 'role-admin'],
+        verify: ['role-manager', 'role-admin'],
+        reject: ['role-manager', 'role-admin'],
+        view: ['role-handler', 'role-manager', 'role-admin'],
+        create: ['role-admin'],
+        delete: ['role-admin'],
+        override: ['role-manager', 'role-admin'],
+      },
       fields: []
     };
     setEditingDoc(newDoc);
@@ -258,26 +290,57 @@ export function DocumentManagement() {
                           </div>
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <button 
-                              onClick={() => handleEdit(doc)}
-                              className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"
-                              title="Edit"
+                          <div className="relative flex items-center justify-end">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (openMenu?.id === doc.id) {
+                                  setOpenMenu(null);
+                                } else {
+                                  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                                  setOpenMenu({ id: doc.id, top: rect.bottom + 4, right: window.innerWidth - rect.right });
+                                }
+                              }}
+                              className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                              title="Actions"
                             >
-                              <Edit2 className="w-4 h-4" />
+                              <MoreHorizontal className="w-4 h-4" />
                             </button>
-                            <button 
-                              onClick={() => handleDelete(doc.id)}
-                              disabled={doc.isSystem}
-                              className={`p-1.5 rounded-md transition-colors ${
-                                doc.isSystem 
-                                  ? 'text-gray-300 cursor-not-allowed' 
-                                  : 'text-gray-400 hover:text-red-600 hover:bg-red-50'
-                              }`}
-                              title={doc.isSystem ? "System documents cannot be deleted" : "Delete"}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+
+                            {openMenu?.id === doc.id && (
+                              <>
+                                {/* Backdrop */}
+                                <div className="fixed inset-0 z-10" onClick={() => setOpenMenu(null)} />
+                                <div
+                                  className="fixed z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-44 py-1 animate-in fade-in zoom-in-95 duration-100"
+                                  style={{ top: openMenu.top, right: openMenu.right }}
+                                >
+                                  <button
+                                    onClick={() => { handleEdit(doc); setOpenMenu(null); }}
+                                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                  >
+                                    <Edit2 className="w-4 h-4 text-gray-400" /> Edit
+                                  </button>
+                                  <button
+                                    onClick={() => { handleDuplicate(doc); setOpenMenu(null); }}
+                                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                  >
+                                    <Copy className="w-4 h-4 text-gray-400" /> Duplicate
+                                  </button>
+                                  {!doc.isSystem && (
+                                    <>
+                                      <div className="mx-3 my-1 border-t border-gray-100" />
+                                      <button
+                                        onClick={() => { handleDelete(doc.id); setOpenMenu(null); }}
+                                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                                      >
+                                        <Trash2 className="w-4 h-4" /> Delete
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -296,8 +359,8 @@ export function DocumentManagement() {
         <div className="absolute inset-y-0 right-0 w-[600px] bg-white shadow-2xl border-l border-gray-200 flex flex-col animate-in slide-in-from-right duration-300 z-10">
           <div className="h-16 border-b border-gray-200 px-6 flex items-center justify-between shrink-0 bg-gray-50/80 backdrop-blur-sm">
             <div className="flex items-center gap-3">
-              <h2 className="text-lg font-bold text-gray-900">
-                {editingDoc.id.startsWith('doc-') && !editingDoc.name ? 'Create Document' : 'Edit Document'}
+              <h2 className="text-lg font-bold text-gray-900 truncate max-w-[300px]">
+                {editingDoc.id.startsWith('doc-') && !editingDoc.name ? 'Create Document Type' : `Edit Document Type - ${editingDoc.name}`}
               </h2>
               {editingDoc.isSystem && (
                 <span className="px-2 py-0.5 bg-gray-200 text-gray-700 rounded text-xs font-bold uppercase tracking-wider">System Doc</span>
@@ -379,12 +442,10 @@ export function DocumentManagement() {
                 {/* Configuration Tabs */}
                 <div className="flex border-b border-gray-200 px-2 shrink-0 overflow-x-auto hide-scrollbar">
                   {[
-                    { id: 'basic', label: 'Basic Info', icon: Settings },
+                    { id: 'basic', label: 'Basic Info', icon: FileText },
                     { id: 'upload', label: 'Upload Rules', icon: UploadCloud },
-                    { id: 'applicability', label: 'Applicability', icon: ListChecks },
-                    { id: 'workflow', label: 'Workflow', icon: Workflow },
+                    { id: 'permissions', label: 'Permissions', icon: ListChecks },
                     { id: 'fields', label: 'Fields', icon: LayoutTemplate },
-                    { id: 'rbac', label: 'Access Control', icon: Shield },
                   ].map(tab => (
                     <button
                       key={tab.id}
@@ -478,15 +539,6 @@ export function DocumentManagement() {
                           ))}
                         </div>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Maximum File Size (MB)</label>
-                        <input 
-                          type="number" 
-                          value={editingDoc.maxSizeMB}
-                          onChange={(e) => setEditingDoc({...editingDoc, maxSizeMB: parseInt(e.target.value) || 5})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
-                        />
-                      </div>
                       <div className="space-y-3">
                         <label className="flex items-center justify-between p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
                           <div>
@@ -516,143 +568,95 @@ export function DocumentManagement() {
                     </div>
                   )}
 
-                  {activeTab === 'applicability' && (
+                  {activeTab === 'permissions' && (
                     <div className="space-y-6">
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-900 mb-3">Vehicle Type</h3>
-                        <div className="space-y-2">
-                          {['2W', '4W', 'Others'].map(type => (
-                            <label key={type} className="flex items-center gap-3">
-                              <input 
-                                type="checkbox" 
-                                checked={editingDoc.vehicleTypes?.includes(type as any) || false}
-                                onChange={(e) => {
-                                  const newTypes = e.target.checked 
-                                    ? [...(editingDoc.vehicleTypes || []), type as any]
-                                    : (editingDoc.vehicleTypes || []).filter(t => t !== type);
-                                  setEditingDoc({...editingDoc, vehicleTypes: newTypes});
-                                }}
-                                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
-                              />
-                              <span className="text-sm text-gray-700">{type}</span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      <div className="pt-4 border-t border-gray-100">
-                        <h3 className="text-sm font-medium text-gray-900 mb-3">Vehicle Class</h3>
-                        <div className="space-y-2">
-                          {['Commercial', 'Personal'].map(cls => (
-                            <label key={cls} className="flex items-center gap-3">
-                              <input 
-                                type="checkbox" 
-                                checked={editingDoc.vehicleClasses?.includes(cls as any) || false}
-                                onChange={(e) => {
-                                  const newClasses = e.target.checked 
-                                    ? [...(editingDoc.vehicleClasses || []), cls as any]
-                                    : (editingDoc.vehicleClasses || []).filter(c => c !== cls);
-                                  setEditingDoc({...editingDoc, vehicleClasses: newClasses});
-                                }}
-                                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
-                              />
-                              <span className="text-sm text-gray-700">{cls}</span>
-                            </label>
-                          ))}
+                      {/* ─ Survey Config notice ──────────────────────────────── */}
+                      <div className="flex items-start gap-3 p-4 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-800">
+                        <span className="shrink-0 text-indigo-500 mt-0.5">ℹ</span>
+                        <div>
+                          <p className="font-bold">Required, overridable, and applicability rules have moved</p>
+                          <p className="text-indigo-600 mt-0.5">Configure when this document appears in surveys and whether it is required or overridable in <span className="font-bold">Settings → Survey Configuration</span>.</p>
                         </div>
                       </div>
 
-                      <div className="pt-4 border-t border-gray-100">
-                        <h3 className="text-sm font-medium text-gray-900 mb-3">Claim Type</h3>
-                        <div className="space-y-2">
-                          {['Repair', 'Theft', 'Total Loss'].map(caseType => (
-                            <label key={caseType} className="flex items-center gap-3">
-                              <input 
-                                type="checkbox" 
-                                checked={editingDoc.applicableCases?.includes(caseType as any) || false}
-                                onChange={(e) => {
-                                  const newCases = e.target.checked 
-                                    ? [...(editingDoc.applicableCases || []), caseType as any]
-                                    : (editingDoc.applicableCases || []).filter(c => c !== caseType);
-                                  setEditingDoc({...editingDoc, applicableCases: newCases});
-                                }}
-                                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
-                              />
-                              <span className="text-sm text-gray-700">{caseType}</span>
-                            </label>
-                          ))}
+                      {/* ─ Document Permissions ─────────────────────────────── */}
+                      <div className="pt-5 border-t border-gray-100">
+                        <h3 className="text-sm font-semibold text-gray-900 mb-1">Document Permissions</h3>
+                        <p className="text-xs text-gray-500 mb-4">Assign specific roles that are authorized to perform actions on this document type.</p>
+
+                        <div className="divide-y divide-gray-100 border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm mt-2">
+                          {[
+                            { key: 'view', label: 'View Document', desc: 'Can view the uploaded document files' },
+                            { key: 'upload', label: 'Upload / Collect', desc: 'Can upload or collect new documents' },
+                            { key: 'verify', label: 'Verify', desc: 'Can mark documents as verified and approve OCR data' },
+                            { key: 'reject', label: 'Reject', desc: 'Can reject documents and request re-upload' },
+                            { key: 'override', label: 'Override / Waive', desc: 'Can waive a missing document with a reason and allow workflow to proceed' },
+                          ].map(action => {
+                            const perms = editingDoc.permissions ?? { upload: [], verify: [], reject: [], view: [], create: [], delete: [], override: [] };
+                            const assignedIds = perms[action.key as keyof typeof perms] as string[];
+                            
+                            // Map IDs to objects, preserving their type
+                            const assignedItems = assignedIds.map(id => {
+                              const r = rolesData.find(x => x.id === id);
+                              if (r) return { ...r, type: 'role' as const };
+                              const u = users.find(x => x.id === id);
+                              if (u) return { ...u, type: 'user' as const };
+                              return { id, name: 'Unknown', type: 'unknown' as const };
+                            }).filter(x => x.type !== 'unknown');
+
+                            return (
+                              <div key={action.key} className="flex flex-col sm:flex-row sm:items-start justify-between p-4 bg-gray-50/20 hover:bg-gray-50/60 transition-colors gap-4">
+                                <div className="sm:max-w-xs shrink-0 pt-1">
+                                  <h4 className="text-sm font-bold text-gray-900">{action.label}</h4>
+                                  <p className="text-[11px] text-gray-500 mt-0.5 leading-relaxed pr-4">{action.desc}</p>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-2 flex-1 sm:justify-end">
+                                  {assignedItems.map(item => (
+                                    <div key={item.id} className={`flex items-center gap-1.5 px-3 py-1.5 border shadow-sm rounded-lg ${
+                                      item.type === 'role' ? 'bg-indigo-50/50 border-indigo-100' : 'bg-white border-gray-200'
+                                    }`}>
+                                      {item.type === 'role' ? <Shield className="w-3.5 h-3.5 text-indigo-500" /> : <User className="w-3.5 h-3.5 text-gray-500" />}
+                                      <span className="text-xs font-semibold text-gray-700">
+                                        {item.name}
+                                        {item.type === 'role' && <span className="ml-1.5 text-[9px] uppercase font-bold text-indigo-400 tracking-wider">Role</span>}
+                                      </span>
+                                      <button 
+                                        onClick={() => {
+                                          const updated = assignedIds.filter(id => id !== item.id);
+                                          setEditingDoc({ ...editingDoc, permissions: { ...perms, [action.key]: updated } });
+                                        }}
+                                        className="p-0.5 text-gray-400 hover:text-red-600 transition-colors ml-1"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  ))}
+                                  
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (assignPopover?.actionKey === action.key) {
+                                        setAssignPopover(null);
+                                      } else {
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        setAssignSearch('');
+                                        setAssignPopover({
+                                          actionKey: action.key,
+                                          top: rect.bottom + 4,
+                                          left: rect.left - 100 // Shift slightly left to avoid screen edge overflow
+                                        });
+                                      }
+                                    }}
+                                    className="px-3 py-1.5 text-xs font-semibold bg-white border border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50/30 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-sm"
+                                  >
+                                    + Assign
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
-                      
-                      <div className="pt-4 border-t border-gray-100">
-                        <h3 className="text-sm font-medium text-gray-900 mb-3">Hypothecation</h3>
-                        <div className="flex gap-4">
-                          {['Yes', 'No', 'Both'].map(option => (
-                            <label key={option} className="flex items-center gap-2 cursor-pointer">
-                              <input 
-                                type="radio" 
-                                name="hypothecation"
-                                checked={editingDoc.hypothecation === option}
-                                onChange={() => setEditingDoc({...editingDoc, hypothecation: option as any})}
-                                className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
-                              />
-                              <span className="text-sm text-gray-700">{option}</span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="pt-4 border-t border-gray-100">
-                        <label className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-lg cursor-pointer">
-                          <div>
-                            <p className="text-sm font-medium text-amber-900">Required Document</p>
-                            <p className="text-xs text-amber-700 mt-0.5">Must be uploaded to proceed in the workflow</p>
-                          </div>
-                          <input 
-                            type="checkbox" 
-                            checked={editingDoc.required}
-                            onChange={(e) => setEditingDoc({...editingDoc, required: e.target.checked})}
-                            className="w-4 h-4 text-amber-600 rounded focus:ring-amber-500"
-                          />
-                        </label>
-                      </div>
-                    </div>
-                  )}
-
-                  {activeTab === 'workflow' && (
-                    <div className="space-y-4">
-                      <p className="text-sm text-gray-500 mb-4">Select the stage at which this document becomes required in the checklist.</p>
-                      
-                      {['Survey Create/Intake', 'Evidence Collection', 'Inspection, Assessment & repair', 'Settlement Stage', 'Closing stage'].map(stage => (
-                        <label 
-                          key={stage} 
-                          className={`flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-colors ${
-                            editingDoc.workflowStage === stage 
-                              ? 'border-indigo-600 bg-indigo-50' 
-                              : 'border-gray-200 hover:bg-gray-50'
-                          }`}
-                        >
-                          <input 
-                            type="radio" 
-                            name="workflowStage"
-                            checked={editingDoc.workflowStage === stage}
-                            onChange={() => setEditingDoc({...editingDoc, workflowStage: stage as any})}
-                            className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
-                          />
-                          <div>
-                            <p className={`text-sm font-medium ${editingDoc.workflowStage === stage ? 'text-indigo-900' : 'text-gray-900'}`}>
-                              {stage}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-0.5">
-                              {stage === 'Survey Create/Intake' && 'Initial claim intimation and assignment'}
-                              {stage === 'Evidence Collection' && 'Initial document collection phase'}
-                              {stage === 'Inspection, Assessment & repair' && 'During damage assessment and estimation'}
-                              {stage === 'Settlement Stage' && 'Final approval and payment processing'}
-                              {stage === 'Closing stage' && 'Report generation and finalization'}
-                            </p>
-                          </div>
-                        </label>
-                      ))}
                     </div>
                   )}
 
@@ -734,36 +738,254 @@ export function DocumentManagement() {
                                     <option value="number">Number</option>
                                     <option value="date">Date</option>
                                     <option value="select">Dropdown</option>
+                                    <option value="table">Table (Repeating Rows)</option>
                                   </select>
                                 </div>
-                                <div>
-                                  <label className="block text-xs font-medium text-gray-700 mb-1">Placeholder</label>
-                                  <input 
-                                    type="text" 
-                                    value={field.placeholder}
-                                    onChange={(e) => {
-                                      const newFields = [...editingDoc.fields];
-                                      newFields[index].placeholder = e.target.value;
-                                      setEditingDoc({...editingDoc, fields: newFields});
-                                    }}
-                                    className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-indigo-500"
-                                  />
-                                </div>
-                                <div className="col-span-2">
-                                  <label className="block text-xs font-medium text-gray-700 mb-1">Validation Rule (Regex)</label>
-                                  <input 
-                                    type="text" 
-                                    value={field.validationRule}
-                                    onChange={(e) => {
-                                      const newFields = [...editingDoc.fields];
-                                      newFields[index].validationRule = e.target.value;
-                                      setEditingDoc({...editingDoc, fields: newFields});
-                                    }}
-                                    placeholder="e.g. ^[0-9]{12}$"
-                                    className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-indigo-500 font-mono text-xs"
-                                  />
-                                </div>
+                                {field.type === 'select' && (
+                                  <div className="col-span-2">
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Options <span className="text-gray-400 font-normal">(comma-separated)</span></label>
+                                    <input
+                                      type="text"
+                                      value={(field.options || []).join(', ')}
+                                      onChange={(e) => {
+                                        const newFields = [...editingDoc.fields];
+                                        newFields[index].options = e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean);
+                                        setEditingDoc({...editingDoc, fields: newFields});
+                                      }}
+                                      placeholder="Option A, Option B, Option C"
+                                      className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-indigo-500"
+                                    />
+                                  </div>
+                                )}
+                                {field.type !== 'table' && (
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Placeholder</label>
+                                    <input
+                                      type="text"
+                                      value={field.placeholder}
+                                      onChange={(e) => {
+                                        const newFields = [...editingDoc.fields];
+                                        newFields[index].placeholder = e.target.value;
+                                        setEditingDoc({...editingDoc, fields: newFields});
+                                      }}
+                                      className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-indigo-500"
+                                    />
+                                  </div>
+                                )}
+                                {field.type !== 'table' && (
+                                  <div className="col-span-2">
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Validation Rule (Regex)</label>
+                                    <input
+                                      type="text"
+                                      value={field.validationRule}
+                                      onChange={(e) => {
+                                        const newFields = [...editingDoc.fields];
+                                        newFields[index].validationRule = e.target.value;
+                                        setEditingDoc({...editingDoc, fields: newFields});
+                                      }}
+                                      placeholder="e.g. ^[0-9]{12}$"
+                                      className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-indigo-500 font-mono text-xs"
+                                    />
+                                  </div>
+                                )}
                               </div>
+
+                              {/* Table Columns Editor */}
+                              {field.type === 'table' && (
+                                <div className="mt-3 border border-indigo-100 rounded-xl bg-indigo-50/20 p-4 space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <p className="text-xs font-bold text-indigo-700 uppercase tracking-wider">Table Columns</p>
+                                      <p className="text-[10px] text-indigo-400 mt-0.5">Each column is a field in every row of the table</p>
+                                    </div>
+                                    <button
+                                      onClick={() => {
+                                        const newFields = [...editingDoc.fields];
+                                        const cols = newFields[index].columns || [];
+                                        newFields[index].columns = [
+                                          ...cols,
+                                          { id: `col-${Date.now()}`, label: 'New Column', code: `${editingDoc.code}_col_${cols.length + 1}`.toLowerCase(), type: 'text' as const, required: false, placeholder: '', validationRule: '', isMasked: false, showInReports: true, isEditable: true, options: [] }
+                                        ];
+                                        setEditingDoc({...editingDoc, fields: newFields});
+                                      }}
+                                      className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 bg-white border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-50 transition-colors shadow-sm"
+                                    >
+                                      <Plus className="w-3.5 h-3.5" /> Add Column
+                                    </button>
+                                  </div>
+
+                                  {(!field.columns || field.columns.length === 0) ? (
+                                    <div className="py-6 text-center border border-dashed border-indigo-200 rounded-xl bg-white">
+                                      <p className="text-xs text-gray-400">No columns defined. Add columns to build the row structure.</p>
+                                    </div>
+                                  ) : (
+                                    <div className="space-y-3">
+                                      {(field.columns || []).map((col, colIdx: number) => (
+                                        <div key={col.id} className="border border-gray-200 rounded-xl p-4 bg-white space-y-3 shadow-sm">
+                                          {/* Column header */}
+                                          <div className="flex items-center justify-between">
+                                            <h5 className="text-xs font-bold text-gray-700">Column {colIdx + 1}</h5>
+                                            <button
+                                              onClick={() => {
+                                                const newFields = [...editingDoc.fields];
+                                                newFields[index].columns!.splice(colIdx, 1);
+                                                setEditingDoc({...editingDoc, fields: newFields});
+                                              }}
+                                              className="text-gray-400 hover:text-red-600 transition-colors"
+                                            >
+                                              <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                          </div>
+
+                                          {/* Same 2-col grid as regular fields */}
+                                          <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                              <label className="block text-xs font-medium text-gray-700 mb-1">Column Name</label>
+                                              <input
+                                                type="text"
+                                                value={col.label}
+                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                  const newFields = [...editingDoc.fields];
+                                                  newFields[index].columns![colIdx].label = e.target.value;
+                                                  newFields[index].columns![colIdx].code = `${editingDoc.code}_${e.target.value.replace(/\s+/g, '_')}`.toLowerCase();
+                                                  setEditingDoc({...editingDoc, fields: newFields});
+                                                }}
+                                                className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-indigo-500"
+                                              />
+                                            </div>
+                                            <div>
+                                              <label className="block text-xs font-medium text-gray-700 mb-1">Column Code</label>
+                                              <input
+                                                type="text"
+                                                value={col.code}
+                                                disabled
+                                                className="w-full px-3 py-1.5 border border-gray-200 bg-gray-100 rounded-lg text-sm text-gray-500 outline-none font-mono text-[10px]"
+                                              />
+                                            </div>
+                                            <div>
+                                              <label className="block text-xs font-medium text-gray-700 mb-1">Type</label>
+                                              <select
+                                                value={col.type}
+                                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                                                  const newFields = [...editingDoc.fields];
+                                                  newFields[index].columns![colIdx].type = e.target.value as any;
+                                                  setEditingDoc({...editingDoc, fields: newFields});
+                                                }}
+                                                className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-indigo-500"
+                                              >
+                                                <option value="text">Text</option>
+                                                <option value="number">Number</option>
+                                                <option value="date">Date</option>
+                                                <option value="select">Dropdown</option>
+                                              </select>
+                                            </div>
+                                            <div>
+                                              <label className="block text-xs font-medium text-gray-700 mb-1">Placeholder</label>
+                                              <input
+                                                type="text"
+                                                value={col.placeholder || ''}
+                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                  const newFields = [...editingDoc.fields];
+                                                  newFields[index].columns![colIdx].placeholder = e.target.value;
+                                                  setEditingDoc({...editingDoc, fields: newFields});
+                                                }}
+                                                className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-indigo-500"
+                                              />
+                                            </div>
+                                            <div className="col-span-2">
+                                              <label className="block text-xs font-medium text-gray-700 mb-1">Validation Rule (Regex)</label>
+                                              <input
+                                                type="text"
+                                                value={col.validationRule || ''}
+                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                  const newFields = [...editingDoc.fields];
+                                                  newFields[index].columns![colIdx].validationRule = e.target.value;
+                                                  setEditingDoc({...editingDoc, fields: newFields});
+                                                }}
+                                                placeholder="e.g. ^[0-9]+$"
+                                                className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-indigo-500 font-mono text-xs"
+                                              />
+                                            </div>
+                                          </div>
+
+                                          {/* Options input for select type */}
+                                          {col.type === 'select' && (
+                                            <div>
+                                              <label className="block text-xs font-medium text-gray-700 mb-1">Options <span className="text-gray-400 font-normal">(comma-separated)</span></label>
+                                              <input
+                                                type="text"
+                                                value={(col.options || []).join(', ')}
+                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                  const newFields = [...editingDoc.fields];
+                                                  newFields[index].columns![colIdx].options = e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean);
+                                                  setEditingDoc({...editingDoc, fields: newFields});
+                                                }}
+                                                placeholder="Option A, Option B, Option C"
+                                                className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-indigo-500"
+                                              />
+                                            </div>
+                                          )}
+
+                                          {/* Checkboxes — same as regular fields */}
+                                          <div className="flex flex-wrap gap-4 pt-3 border-t border-gray-100">
+                                            {[
+                                              { key: 'required', label: 'Required' },
+                                              { key: 'isMasked', label: 'Mask Value' },
+                                              { key: 'showInReports', label: 'Show in Reports' },
+                                            ].map(({ key, label }) => (
+                                              <label key={key} className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                  type="checkbox"
+                                                  checked={(col as any)[key] || false}
+                                                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                    const newFields = [...editingDoc.fields];
+                                                    (newFields[index].columns![colIdx] as any)[key] = e.target.checked;
+                                                    setEditingDoc({...editingDoc, fields: newFields});
+                                                  }}
+                                                  className="rounded text-indigo-600 focus:ring-indigo-500"
+                                                />
+                                                <span className="text-xs font-medium text-gray-700">{label}</span>
+                                              </label>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+
+                                  {/* Preview table */}
+                                  {field.columns && field.columns.length > 0 && (
+                                    <div className="overflow-x-auto rounded-xl border border-indigo-100 mt-1">
+                                      <p className="px-3 pt-2.5 text-[10px] font-bold uppercase tracking-widest text-indigo-400">Preview</p>
+                                      <table className="w-full text-[11px]">
+                                        <thead>
+                                          <tr className="bg-indigo-50">
+                                            {field.columns.map(col => (
+                                              <th key={col.id} className="px-3 py-2 text-left font-bold text-indigo-700 whitespace-nowrap border-b border-indigo-100">
+                                                {col.label}{col.required && <span className="text-red-500 ml-0.5">*</span>}
+                                                <span className="ml-1 text-[9px] font-normal text-indigo-400 uppercase">{col.type}</span>
+                                              </th>
+                                            ))}
+                                            <th className="px-2 py-2 w-8 border-b border-indigo-100" />
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          {[0, 1].map(row => (
+                                            <tr key={row} className="border-t border-gray-100">
+                                              {field.columns!.map(col => (
+                                                <td key={col.id} className="px-3 py-2">
+                                                  <div className="h-6 bg-gray-50 border border-gray-200 rounded-md w-full" />
+                                                </td>
+                                              ))}
+                                              <td className="px-2 py-2 text-center text-gray-300 text-sm">×</td>
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
 
                               <div className="flex flex-wrap gap-4 pt-3 border-t border-gray-200">
                                 <label className="flex items-center gap-2 cursor-pointer">
@@ -828,126 +1050,6 @@ export function DocumentManagement() {
                       )}
                     </div>
                   )}
-                  {activeTab === 'rbac' && (
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-900 mb-3">Upload Permissions</h3>
-                        <p className="text-xs text-gray-500 mb-2">Roles or specific users that can upload this document.</p>
-                        <div className="space-y-2">
-                          {['handler', 'manager', 'admin'].map(role => (
-                            <label key={role} className="flex items-center gap-3">
-                              <input 
-                                type="checkbox" 
-                                checked={editingDoc.uploadRoles.includes(role)}
-                                onChange={(e) => {
-                                  const newRoles = e.target.checked 
-                                    ? [...editingDoc.uploadRoles, role]
-                                    : editingDoc.uploadRoles.filter(r => r !== role);
-                                  setEditingDoc({...editingDoc, uploadRoles: newRoles});
-                                }}
-                                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
-                              />
-                              <span className="text-sm text-gray-700 capitalize">{role}</span>
-                            </label>
-                          ))}
-                          <div className="mt-2">
-                            <input 
-                              type="text"
-                              placeholder="Type to add specific user..."
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  const user = e.currentTarget.value;
-                                  if (user && !editingDoc.uploadRoles.includes(user as any)) {
-                                    setEditingDoc({...editingDoc, uploadRoles: [...editingDoc.uploadRoles, user as any]});
-                                    e.currentTarget.value = '';
-                                  }
-                                }
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="pt-4 border-t border-gray-100">
-                        <h3 className="text-sm font-medium text-gray-900 mb-3">Verification Permissions</h3>
-                        <p className="text-xs text-gray-500 mb-2">Roles or specific users that can verify or approve this document.</p>
-                        <div className="space-y-2">
-                          {['handler', 'manager', 'admin'].map(role => (
-                            <label key={role} className="flex items-center gap-3">
-                              <input 
-                                type="checkbox" 
-                                checked={editingDoc.verifyRoles.includes(role)}
-                                onChange={(e) => {
-                                  const newRoles = e.target.checked 
-                                    ? [...editingDoc.verifyRoles, role]
-                                    : editingDoc.verifyRoles.filter(r => r !== role);
-                                  setEditingDoc({...editingDoc, verifyRoles: newRoles});
-                                }}
-                                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
-                              />
-                              <span className="text-sm text-gray-700 capitalize">{role}</span>
-                            </label>
-                          ))}
-                          <div className="mt-2">
-                            <input 
-                              type="text"
-                              placeholder="Type to add specific user..."
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  const user = e.currentTarget.value;
-                                  if (user && !editingDoc.verifyRoles.includes(user as any)) {
-                                    setEditingDoc({...editingDoc, verifyRoles: [...editingDoc.verifyRoles, user as any]});
-                                    e.currentTarget.value = '';
-                                  }
-                                }
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="pt-4 border-t border-gray-100">
-                        <h3 className="text-sm font-medium text-gray-900 mb-3">Rejection Permissions</h3>
-                        <p className="text-xs text-gray-500 mb-2">Roles or specific users that can reject this document.</p>
-                        <div className="space-y-2">
-                          {['handler', 'manager', 'admin'].map(role => (
-                            <label key={role} className="flex items-center gap-3">
-                              <input 
-                                type="checkbox" 
-                                checked={editingDoc.rejectRoles.includes(role)}
-                                onChange={(e) => {
-                                  const newRoles = e.target.checked 
-                                    ? [...editingDoc.rejectRoles, role]
-                                    : editingDoc.rejectRoles.filter(r => r !== role);
-                                  setEditingDoc({...editingDoc, rejectRoles: newRoles});
-                                }}
-                                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
-                              />
-                              <span className="text-sm text-gray-700 capitalize">{role}</span>
-                            </label>
-                          ))}
-                          <div className="mt-2">
-                            <input 
-                              type="text"
-                              placeholder="Type to add specific user..."
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  const user = e.currentTarget.value;
-                                  if (user && !editingDoc.rejectRoles.includes(user as any)) {
-                                    setEditingDoc({...editingDoc, rejectRoles: [...editingDoc.rejectRoles, user as any]});
-                                    e.currentTarget.value = '';
-                                  }
-                                }
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </>
             )}
@@ -969,6 +1071,100 @@ export function DocumentManagement() {
             </button>
           </div>
         </div>
+      )}
+      {/* Custom Global Assign Popover */}
+      {assignPopover && editingDoc && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setAssignPopover(null)} />
+          <div 
+            className="fixed z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-72 flex flex-col overflow-hidden animate-in fade-in py-2"
+            style={{ 
+              top: Math.min(assignPopover.top, window.innerHeight - 300), 
+              left: Math.min(assignPopover.left, window.innerWidth - 300) 
+            }}
+          >
+            <div className="px-3 pb-2 border-b border-gray-100">
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  autoFocus
+                  type="text"
+                  placeholder="Search roles or users..."
+                  value={assignSearch}
+                  onChange={(e) => setAssignSearch(e.target.value)}
+                  className="w-full pl-8 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                />
+              </div>
+            </div>
+            
+            <div className="max-h-60 overflow-y-auto px-1 py-1 hide-scrollbar">
+              {(() => {
+                const perms = editingDoc.permissions ?? { upload: [], verify: [], reject: [], view: [], create: [], delete: [] };
+                const assignedIds = perms[assignPopover.actionKey as keyof typeof perms] as string[];
+                
+                const filteredRoles = rolesData.filter(r => 
+                  !assignedIds.includes(r.id) && r.name.toLowerCase().includes(assignSearch.toLowerCase())
+                );
+                const filteredUsers = users.filter(u => 
+                  !assignedIds.includes(u.id) && (u.name.toLowerCase().includes(assignSearch.toLowerCase()) || u.email.toLowerCase().includes(assignSearch.toLowerCase()))
+                );
+
+                return (
+                  <div className="space-y-3">
+                    {filteredRoles.length > 0 && (
+                      <div>
+                        <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">Roles</div>
+                        {filteredRoles.map(role => (
+                          <button
+                            key={role.id}
+                            onClick={() => {
+                              const updated = [...assignedIds, role.id];
+                              setEditingDoc({ ...editingDoc, permissions: { ...perms, [assignPopover.actionKey]: updated } });
+                              setAssignPopover(null);
+                            }}
+                            className="w-full text-left px-2 py-1.5 hover:bg-gray-50 rounded-md flex items-center gap-2"
+                          >
+                            <Shield className="w-4 h-4 text-indigo-500 shrink-0" />
+                            <div>
+                              <div className="text-sm font-medium text-gray-800">{role.name}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {filteredUsers.length > 0 && (
+                      <div>
+                        <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-t border-gray-50 pt-2 mt-1">Users (Overrides RBAC)</div>
+                        {filteredUsers.map(user => (
+                          <button
+                            key={user.id}
+                            onClick={() => {
+                              const updated = [...assignedIds, user.id];
+                              setEditingDoc({ ...editingDoc, permissions: { ...perms, [assignPopover.actionKey]: updated } });
+                              setAssignPopover(null);
+                            }}
+                            className="w-full text-left px-2 py-1.5 hover:bg-gray-50 rounded-md flex items-center gap-2"
+                          >
+                            <User className="w-4 h-4 text-gray-400 shrink-0" />
+                            <div className="truncate">
+                              <div className="text-sm font-medium text-gray-800 truncate">{user.name}</div>
+                              <div className="text-xs text-gray-500 truncate">{user.email}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {filteredRoles.length === 0 && filteredUsers.length === 0 && (
+                      <div className="text-center py-4 text-sm text-gray-500">No matching roles or users.</div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

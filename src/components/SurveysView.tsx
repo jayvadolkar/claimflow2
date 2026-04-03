@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Search, Filter, Bell, UserPlus, MoveRight, Zap, XCircle, Calendar, ChevronLeft, ChevronRight, X, MessageSquare, Plus, Briefcase, Users, Building2, FolderOpen, FileText, ChevronDown } from 'lucide-react';
 import { Survey, UserRole } from '../types';
 import { api } from '../services/api';
+import { useRBAC } from '../hooks/useRBAC';
 import toast from 'react-hot-toast';
 import { ProgressSection } from './ProgressSection';
 import { CommunicationTab } from './tabs/CommunicationTab';
@@ -18,10 +19,11 @@ interface SurveysViewProps {
 }
 
 export function SurveysView({ surveys, onSurveyClick, onUpdateSurvey, onCreateSurvey, userRole, isReadOnly }: SurveysViewProps) {
+  const { hasPermission } = useRBAC(userRole);
   const [activeMainTab, setActiveMainTab] = useState<'dashboard' | 'survey_list' | 'communication' | 'evidence' | 'docs'>('survey_list');
   const [activeSubTab, setActiveSubTab] = useState<'new' | 'in_progress' | 'all' | 'cancelled' | 'completed'>('new');
   const [scope, setScope] = useState<'me' | 'team' | 'company'>(
-    userRole === 'handler' ? 'me' : userRole === 'manager' ? 'team' : 'company'
+    userRole === 'role-handler' ? 'me' : userRole === 'role-manager' ? 'team' : 'company'
   );
   const [isScopeDropdownOpen, setIsScopeDropdownOpen] = useState(false);
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
@@ -34,7 +36,7 @@ export function SurveysView({ surveys, onSurveyClick, onUpdateSurvey, onCreateSu
 
   // Update scope when role changes
   React.useEffect(() => {
-    setScope(userRole === 'handler' ? 'me' : userRole === 'manager' ? 'team' : 'company');
+    setScope(userRole === 'role-handler' ? 'me' : userRole === 'role-manager' ? 'team' : 'company');
   }, [userRole]);
 
   // Modals state
@@ -66,7 +68,7 @@ export function SurveysView({ surveys, onSurveyClick, onUpdateSurvey, onCreateSu
       .finally(() => setLoadingUsers(false));
   }, []);
 
-  const handlers = users.filter(u => u.role === 'handler' || u.role === 'manager');
+  const handlers = users.filter(u => u.role === 'role-handler' || u.role === 'role-manager');
 
   // Mock Current User & Team
   const currentUser = 'Alex Johnson';
@@ -131,6 +133,19 @@ export function SurveysView({ surveys, onSurveyClick, onUpdateSurvey, onCreateSu
   const paginatedData = useMemo(() => {
     return currentData.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
   }, [currentData, currentPage, rowsPerPage]);
+
+  // Must be declared unconditionally at top level — used in dashboard tab
+  const avgTurnaround = useMemo(() => {
+    const completed = filteredSurveys.filter(s => s.stage === 'Closing stage');
+    if (completed.length === 0) return '0 Days';
+    const totalDays = completed.reduce((acc, s) => {
+      const start = new Date(s.requestDate).getTime();
+      const end = new Date(s.lastUpdated).getTime();
+      if (isNaN(start) || isNaN(end)) return acc + 2.5;
+      return acc + Math.max(0.5, (end - start) / (1000 * 60 * 60 * 24));
+    }, 0);
+    return (totalDays / completed.length).toFixed(1) + ' Days';
+  }, [filteredSurveys]);
 
   const handleTabChange = (tab: 'new' | 'in_progress' | 'all' | 'cancelled' | 'completed') => {
     setActiveSubTab(tab);
@@ -267,7 +282,7 @@ export function SurveysView({ surveys, onSurveyClick, onUpdateSurvey, onCreateSu
             </button>
           </div>
 
-          {userRole !== 'handler' && (
+          {hasPermission('survey.assign') && (
             <div className="relative mb-[-1px]">
               <button 
                 onClick={() => setIsScopeDropdownOpen(!isScopeDropdownOpen)}
@@ -297,7 +312,7 @@ export function SurveysView({ surveys, onSurveyClick, onUpdateSurvey, onCreateSu
                       <Users className={`w-4 h-4 ${scope === 'team' ? 'text-indigo-600' : 'text-gray-400'}`} />
                       My Team
                     </button>
-                    {userRole === 'admin' && (
+                    {userRole === 'role-admin' && (
                       <button 
                         onClick={() => handleScopeChange('company')}
                         className={`flex items-center gap-3 w-full px-4 py-2 text-sm text-left transition-colors ${scope === 'company' ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-gray-700 hover:bg-gray-50'}`}
@@ -350,17 +365,7 @@ export function SurveysView({ surveys, onSurveyClick, onUpdateSurvey, onCreateSu
                 <div>
                   <p className="text-sm font-medium text-gray-500">Avg Turnaround</p>
                   <p className="text-2xl font-bold text-gray-900 mt-1">
-                    {useMemo(() => {
-                      const completed = filteredSurveys.filter(s => s.stage === 'Closing stage');
-                      if (completed.length === 0) return '0 Days';
-                      const totalDays = completed.reduce((acc, s) => {
-                        const start = new Date(s.requestDate).getTime();
-                        const end = new Date(s.lastUpdated).getTime();
-                        if (isNaN(start) || isNaN(end)) return acc + 2.5; // Default fallback
-                        return acc + Math.max(0.5, (end - start) / (1000 * 60 * 60 * 24));
-                      }, 0);
-                      return (totalDays / completed.length).toFixed(1) + ' Days';
-                    }, [filteredSurveys])}
+                    {avgTurnaround}
                   </p>
                 </div>
                 <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center">
@@ -563,8 +568,8 @@ export function SurveysView({ surveys, onSurveyClick, onUpdateSurvey, onCreateSu
                      activeSubTab === 'cancelled' ? 'Surveys that were cancelled or rejected.' : ''}
                   </p>
                 </div>
-                {!isReadOnly && (
-                  <button 
+                {!isReadOnly && hasPermission('survey.create') && (
+                  <button
                     onClick={onCreateSurvey}
                     className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"
                   >
@@ -699,14 +704,18 @@ export function SurveysView({ surveys, onSurveyClick, onUpdateSurvey, onCreateSu
                       {selectedRows.size} selected
                     </span>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => setAssignModalOpen(true)} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700 transition-colors shadow-sm">
-                        <UserPlus className="w-4 h-4" />
-                        Assign
-                      </button>
-                      <button onClick={() => setCancelModalOpen(true)} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-red-200 rounded-md text-sm font-medium text-red-700 hover:bg-red-50 transition-colors">
-                        <XCircle className="w-4 h-4" />
-                        Cancel with Reason
-                      </button>
+                      {hasPermission('survey.assign') && (
+                        <button onClick={() => setAssignModalOpen(true)} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700 transition-colors shadow-sm">
+                          <UserPlus className="w-4 h-4" />
+                          Assign
+                        </button>
+                      )}
+                      {hasPermission('survey.stage') && (
+                        <button onClick={() => setCancelModalOpen(true)} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-red-200 rounded-md text-sm font-medium text-red-700 hover:bg-red-50 transition-colors">
+                          <XCircle className="w-4 h-4" />
+                          Cancel with Reason
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -717,21 +726,25 @@ export function SurveysView({ surveys, onSurveyClick, onUpdateSurvey, onCreateSu
                       {selectedRows.size} selected
                     </span>
                     <div className="flex items-center gap-2">
-                      <button 
-                        onClick={handleSmartReminder} 
+                      <button
+                        onClick={handleSmartReminder}
                         className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700 transition-colors shadow-sm"
                       >
                         <Bell className="w-4 h-4" />
                         Send Smart Reminder
                       </button>
-                      <button onClick={() => setAssignModalOpen(true)} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-indigo-200 rounded-md text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition-colors">
-                        <UserPlus className="w-4 h-4" />
-                        Assign
-                      </button>
-                      <button onClick={() => handleBulkAction('Stage moved')} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-indigo-200 rounded-md text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition-colors">
-                        <MoveRight className="w-4 h-4" />
-                        Move
-                      </button>
+                      {hasPermission('survey.assign') && (
+                        <button onClick={() => setAssignModalOpen(true)} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-indigo-200 rounded-md text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition-colors">
+                          <UserPlus className="w-4 h-4" />
+                          Assign
+                        </button>
+                      )}
+                      {hasPermission('survey.stage') && (
+                        <button onClick={() => handleBulkAction('Stage moved')} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-indigo-200 rounded-md text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition-colors">
+                          <MoveRight className="w-4 h-4" />
+                          Move
+                        </button>
+                      )}
                       <button onClick={() => handleBulkAction('AI Inspection triggered')} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-indigo-200 rounded-md text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition-colors">
                         <Zap className="w-4 h-4" />
                         AI Inspect

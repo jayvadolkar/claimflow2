@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, FileText, Camera, CheckSquare, FileBarChart, Activity, Edit2, Save, X, MessageSquare, MapPin, AlertCircle, Calendar } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ArrowLeft, FileText, Camera, CheckSquare, FileBarChart, Activity, Edit2, Save, X, MessageSquare, MapPin, AlertCircle, Calendar, ChevronDown } from 'lucide-react';
+import { stages } from '../data';
 import { Survey } from '../types';
+import { useRBAC } from '../hooks/useRBAC';
 import { IntimationTab } from './tabs/IntimationTab';
 import { IntimationSidebar } from './tabs/IntimationSidebar';
 import { DocsTab } from './tabs/DocsTab';
@@ -19,8 +21,11 @@ interface SurveyDetailProps {
 }
 
 export function SurveyDetail({ survey, onBack, onUpdateSurvey, userRole }: SurveyDetailProps) {
+  const { hasPermission } = useRBAC(userRole);
   const [activeTab, setActiveTab] = useState<'docs' | 'assessment' | 'communication' | 'report' | 'survey_details'>('docs');
   const [viewMode, setViewMode] = useState<'tabs' | 'journey'>('tabs');
+  const [stagePopover, setStagePopover] = useState(false);
+  const stageRef = useRef<HTMLDivElement>(null);
   
   // Editable Overview State
   const [isEditing, setIsEditing] = useState(false);
@@ -43,6 +48,21 @@ export function SurveyDetail({ survey, onBack, onUpdateSurvey, userRole }: Surve
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEditedSurvey({ ...editedSurvey, [e.target.name]: e.target.value });
+  };
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (stageRef.current && !stageRef.current.contains(e.target as Node)) setStagePopover(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const handleStageChange = (newStage: string) => {
+    const updated = { ...survey, stage: newStage };
+    onUpdateSurvey(updated);
+    setStagePopover(false);
+    toast.success(`Stage moved to "${newStage}"`);
   };
 
   const handleGenerateReport = () => {
@@ -87,9 +107,31 @@ export function SurveyDetail({ survey, onBack, onUpdateSurvey, userRole }: Surve
             <div>
               <h2 className="text-2xl font-bold text-gray-900 tracking-tight">{survey.id}</h2>
               <div className="flex items-center gap-2 mt-1">
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
-                  {survey.stage}
-                </span>
+                {/* Clickable stage badge → change stage */}
+                <div className="relative" ref={stageRef}>
+                  <button
+                    onClick={() => setStagePopover(v => !v)}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100 hover:bg-indigo-100 transition-colors"
+                  >
+                    {survey.stage}
+                    <ChevronDown className="w-3 h-3" />
+                  </button>
+                  {stagePopover && (
+                    <div className="absolute top-full left-0 mt-1.5 w-64 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
+                      <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Move to stage</p>
+                      {stages.map((s, i) => (
+                        <button
+                          key={s}
+                          onClick={() => handleStageChange(s)}
+                          className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left text-xs font-medium transition-colors ${s === survey.stage ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                        >
+                          <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${s === survey.stage ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-500'}`}>{i + 1}</span>
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <span className="text-xs font-semibold text-gray-500">{survey.vehicle}</span>
               </div>
             </div>
@@ -110,9 +152,11 @@ export function SurveyDetail({ survey, onBack, onUpdateSurvey, userRole }: Surve
                 Journey
               </button>
             </div>
-            <button onClick={() => setIsEditing(!isEditing)} className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
-              <Edit2 className="w-4 h-4" />
-            </button>
+            {hasPermission('survey.edit') && (
+              <button onClick={() => setIsEditing(!isEditing)} className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                <Edit2 className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
 

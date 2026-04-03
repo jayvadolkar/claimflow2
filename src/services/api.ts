@@ -51,6 +51,45 @@ export const api = {
     });
   },
 
+  getDocumentRules: async (): Promise<any[]> => {
+    const res = await fetch('/api/document-rules');
+    return res.json();
+  },
+
+  saveDocumentRules: async (rules: any[]): Promise<void> => {
+    await fetch('/api/document-rules', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(rules)
+    });
+  },
+
+  getImageRules: async (): Promise<any[]> => {
+    const res = await fetch('/api/image-rules');
+    return res.json();
+  },
+
+  saveImageRules: async (rules: any[]): Promise<void> => {
+    await fetch('/api/image-rules', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(rules)
+    });
+  },
+
+  getSurveyProfiles: async (): Promise<any[]> => {
+    const res = await fetch('/api/survey-profiles');
+    return res.json();
+  },
+
+  saveSurveyProfiles: async (profiles: any[]): Promise<void> => {
+    await fetch('/api/survey-profiles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(profiles),
+    });
+  },
+
   getUsers: async (): Promise<any[]> => {
     const res = await fetch('/api/users');
     return res.json();
@@ -61,6 +100,37 @@ export const api = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(users)
+    });
+  },
+
+  getRoles: async (): Promise<any[]> => {
+    const res = await fetch('/api/roles');
+    return res.json();
+  },
+  
+  saveRoles: async (roles: any[]): Promise<void> => {
+    await fetch('/api/roles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(roles)
+    });
+  },
+
+  login: async (username: string, password: string): Promise<{ user: any }> => {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    if (!res.ok) throw new Error('Invalid credentials');
+    return res.json();
+  },
+
+  saveUserCredentials: async (userId: string, username: string, password: string): Promise<void> => {
+    await fetch(`/api/users/${userId}/credentials`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
     });
   }
 };

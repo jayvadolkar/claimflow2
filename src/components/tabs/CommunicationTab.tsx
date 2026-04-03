@@ -15,7 +15,7 @@ type CommChannel = 'whatsapp' | 'sms' | 'email' | 'internal';
 interface Message {
   id: string;
   channel: CommChannel;
-  sender: 'handler' | 'participant' | 'system' | 'admin' | 'manager' | 'surveyor' | 'garage' | 'insurer' | 'customer';
+  sender: 'role-handler' | 'participant' | 'system' | 'role-admin' | 'role-manager' | 'surveyor' | 'garage' | 'insurer' | 'customer';
   content: string;
   time: string;
   status?: 'delivered' | 'read' | 'sent' | 'failed';
@@ -53,10 +53,10 @@ export function CommunicationTab({ survey, onUpdateSurvey }: { survey: Survey; o
       status: 'waiting',
       statusText: 'Waiting for documents',
       messages: ([
-        { id: '1', channel: 'whatsapp', sender: 'handler', content: 'Please upload damage photos', time: '10:00 AM', status: 'read' },
+        { id: '1', channel: 'whatsapp', sender: 'role-handler', content: 'Please upload damage photos', time: '10:00 AM', status: 'read' },
         { id: '2', channel: 'sms', sender: 'system', content: 'Reminder sent for photos', time: '10:05 AM' },
         { id: '3', channel: 'whatsapp', sender: 'participant', content: 'Uploading RC now', time: '10:15 AM' },
-        { id: '4', channel: 'sms', sender: 'handler', content: 'We have received your RC. Thank you.', time: '10:20 AM', status: 'delivered' },
+        { id: '4', channel: 'sms', sender: 'role-handler', content: 'We have received your RC. Thank you.', time: '10:20 AM', status: 'delivered' },
       ] as Message[]).sort((a, b) => a.time.localeCompare(b.time))
     },
     garage: {
@@ -69,9 +69,9 @@ export function CommunicationTab({ survey, onUpdateSurvey }: { survey: Survey; o
       status: 'received',
       statusText: 'Estimate received',
       messages: ([
-        { id: 'g1', channel: 'email', sender: 'handler', content: 'Please share the repair estimate for the vehicle. We have noted the damage to the front bumper and left fender. Please ensure the estimate includes labor charges and parts cost.', time: '09:00 AM', status: 'read', attachments: [{ name: 'Damage_Report.pdf', type: 'PDF', size: '200 KB' }] },
+        { id: 'g1', channel: 'email', sender: 'role-handler', content: 'Please share the repair estimate for the vehicle. We have noted the damage to the front bumper and left fender. Please ensure the estimate includes labor charges and parts cost.', time: '09:00 AM', status: 'read', attachments: [{ name: 'Damage_Report.pdf', type: 'PDF', size: '200 KB' }] },
         { id: 'g2', channel: 'email', sender: 'participant', content: 'Estimate sent. Please check your portal.', time: '10:30 AM' },
-        { id: 'g3', channel: 'email', sender: 'handler', content: 'Please also include photos of the chassis number.', time: '11:00 AM', status: 'sent' },
+        { id: 'g3', channel: 'email', sender: 'role-handler', content: 'Please also include photos of the chassis number.', time: '11:00 AM', status: 'sent' },
       ] as Message[]).sort((a, b) => a.time.localeCompare(b.time))
     },
     insurer: {
@@ -85,9 +85,9 @@ export function CommunicationTab({ survey, onUpdateSurvey }: { survey: Survey; o
       statusText: 'Awaiting report',
       messages: ([
         { id: 'i1', channel: 'email', sender: 'participant', content: 'Any update on the survey report?', time: '08:00 AM' },
-        { id: 'i2', channel: 'email', sender: 'handler', content: 'Survey in progress. Will share the report soon.', time: '08:30 AM', status: 'read' },
+        { id: 'i2', channel: 'email', sender: 'role-handler', content: 'Survey in progress. Will share the report soon.', time: '08:30 AM', status: 'read' },
         { id: 'i3', channel: 'email', sender: 'participant', content: 'Yes, please share it as soon as possible.', time: '11:00 AM' },
-        { id: 'i4', channel: 'email', sender: 'handler', content: 'Please find the attached survey report.', time: '11:15 AM', status: 'sent', attachments: [{ name: 'Survey_Report_Final.pdf', type: 'PDF', size: '1.5 MB' }] },
+        { id: 'i4', channel: 'email', sender: 'role-handler', content: 'Please find the attached survey report.', time: '11:15 AM', status: 'sent', attachments: [{ name: 'Survey_Report_Final.pdf', type: 'PDF', size: '1.5 MB' }] },
       ] as Message[]).sort((a, b) => a.time.localeCompare(b.time))
     },
     internal: {
@@ -101,7 +101,7 @@ export function CommunicationTab({ survey, onUpdateSurvey }: { survey: Survey; o
       statusText: '',
       messages: ([
         { id: 'n1', channel: 'internal', sender: 'system', content: 'AI inspection completed. Confidence score: 92%', time: '10:45 AM' },
-        { id: 'n2', channel: 'internal', sender: 'handler', content: 'Verified AI findings. Looks consistent with damage.', time: '11:00 AM' },
+        { id: 'n2', channel: 'internal', sender: 'role-handler', content: 'Verified AI findings. Looks consistent with damage.', time: '11:00 AM' },
       ] as Message[]).sort((a, b) => a.time.localeCompare(b.time))
     }
   };
@@ -133,7 +133,7 @@ export function CommunicationTab({ survey, onUpdateSurvey }: { survey: Survey; o
     const newMsg: Message = {
       id: Date.now().toString(),
       channel: channel,
-      sender: 'handler',
+      sender: 'role-handler',
       content: newMessage,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       status: 'sent'
@@ -310,7 +310,7 @@ export function CommunicationTab({ survey, onUpdateSurvey }: { survey: Survey; o
         {/* Messages Thread */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50/30">
           {activeThread.messages.map((msg) => {
-            const isHandler = msg.sender === 'handler';
+            const isHandler = msg.sender === 'role-handler';
             const isSystem = msg.sender === 'system';
             const isEmail = msg.channel === 'email';
             const isExpanded = expandedEmailId === msg.id;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Survey } from '../../types';
 import { Building2, Car, MapPin, Calendar, UserCircle, ShieldAlert, Edit2, Save, X, Copy } from 'lucide-react';
 import { handlers, surveyors } from '../../data';
@@ -81,6 +81,14 @@ export function IntimationSidebar({ survey, onUpdateSurvey }: { survey: Survey, 
     setEdited({ ...edited, [e.target.name]: e.target.value });
   };
 
+  // Re-sync local edited state when survey prop changes (e.g. from quick selects)
+  // but only when not actively in edit mode to avoid clobbering unsaved changes
+  useEffect(() => {
+    if (!isEditing) {
+      setEdited(survey);
+    }
+  }, [survey]);
+
   return (
     <div className="flex flex-col h-full">
       <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between bg-white sticky top-0 z-10">
@@ -102,6 +110,67 @@ export function IntimationSidebar({ survey, onUpdateSurvey }: { survey: Survey, 
       </div>
 
       <div className="flex-1 overflow-y-auto bg-white">
+        {/* Quick Filters Card */}
+        <div className="bg-white border-b border-gray-100">
+          <div className="px-4 py-3 flex items-center gap-2 bg-gray-50/50">
+            <Car className="w-3.5 h-3.5 text-indigo-500" />
+            <h3 className="font-bold text-[11px] text-gray-500 uppercase tracking-wider">Claim Parameters</h3>
+            <div className="ml-auto flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+              <span className="text-[9px] font-black text-emerald-600 uppercase tracking-[0.1em]">Live</span>
+            </div>
+          </div>
+          <div className="p-4 grid grid-cols-2 gap-3">
+            <div>
+              <dt className="text-[10px] font-medium text-gray-400 uppercase tracking-tight mb-1">Vehicle Type</dt>
+              <select
+                value={survey.vehicleCategory}
+                onChange={(e) => onUpdateSurvey({ ...survey, vehicleCategory: e.target.value as any })}
+                className="w-full text-xs font-bold border border-gray-200 rounded px-2 py-1 focus:ring-1 focus:ring-indigo-500 outline-none bg-white"
+              >
+                <option value="2W">2 Wheeler</option>
+                <option value="4W">4 Wheeler</option>
+                <option value="Others">Others</option>
+              </select>
+            </div>
+            <div>
+              <dt className="text-[10px] font-medium text-gray-400 uppercase tracking-tight mb-1">Vehicle Class</dt>
+              <select
+                value={survey.vehicleClass}
+                onChange={(e) => onUpdateSurvey({ ...survey, vehicleClass: e.target.value as any })}
+                className="w-full text-xs font-bold border border-gray-200 rounded px-2 py-1 focus:ring-1 focus:ring-indigo-500 outline-none bg-white"
+              >
+                <option value="Personal">Personal</option>
+                <option value="Commercial">Commercial</option>
+              </select>
+            </div>
+            <div>
+              <dt className="text-[10px] font-medium text-gray-400 uppercase tracking-tight mb-1">Claim Type</dt>
+              <select
+                value={survey.lossType}
+                onChange={(e) => onUpdateSurvey({ ...survey, lossType: e.target.value })}
+                className="w-full text-xs font-bold border border-gray-200 rounded px-2 py-1 focus:ring-1 focus:ring-indigo-500 outline-none bg-white"
+              >
+                <option value="Repair">Repair</option>
+                <option value="Total Loss">Total Loss</option>
+                <option value="Theft">Theft</option>
+                <option value="Third Party">Third Party</option>
+              </select>
+            </div>
+            <div>
+              <dt className="text-[10px] font-medium text-gray-400 uppercase tracking-tight mb-1">Hypothecation</dt>
+              <select
+                value={survey.isHypothecated ? 'Yes' : 'No'}
+                onChange={(e) => onUpdateSurvey({ ...survey, isHypothecated: e.target.value === 'Yes' })}
+                className="w-full text-xs font-bold border border-gray-200 rounded px-2 py-1 focus:ring-1 focus:ring-indigo-500 outline-none bg-white"
+              >
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
         <SidebarCard title="Claim & Insurer" icon={Building2}>
           <DataField label="Insurer" name="insurer" value={edited.insurer} isEditing={isEditing} onChange={handleChange} />
           <div className="grid grid-cols-2 gap-4">
@@ -122,23 +191,12 @@ export function IntimationSidebar({ survey, onUpdateSurvey }: { survey: Survey, 
 
         <SidebarCard title="Loss & Vehicle" icon={Car}>
           <div className="grid grid-cols-2 gap-4">
-            <DataField label="Loss Type" name="lossType" value={edited.lossType} isEditing={isEditing} onChange={handleChange} />
             <DataField label="Loss Value" name="lossValue" value={edited.lossValue} isEditing={isEditing} onChange={handleChange} type="number" />
           </div>
           <DataField label="Vehicle No." name="vehicle" value={edited.vehicle} isEditing={isEditing} onChange={handleChange} canCopy={true} />
           <div className="grid grid-cols-2 gap-4">
             <DataField label="Make" name="vehicleMake" value={edited.vehicleMake} isEditing={isEditing} onChange={handleChange} />
             <DataField label="Model" name="vehicleModel" value={edited.vehicleModel} isEditing={isEditing} onChange={handleChange} />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <DataField 
-              label="Hypothecation" 
-              name="isHypothecated" 
-              value={edited.isHypothecated ? 'Yes' : 'No'} 
-              isEditing={isEditing} 
-              onChange={(e: any) => setEdited({ ...edited, isHypothecated: e.target.value === 'Yes' })} 
-              options={['Yes', 'No']} 
-            />
           </div>
         </SidebarCard>
 

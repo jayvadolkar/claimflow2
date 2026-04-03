@@ -48,9 +48,14 @@ const InputField = ({ label, name, type = "text", required = false, options, for
         onChange={handleChange}
         className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
         placeholder={`Enter ${label.toLowerCase()}...`}
+        autoComplete="off"
       />
     )}
   </div>
+);
+
+const FormInputField = (props: any) => (
+  <InputField {...props} />
 );
 
 export function NewSurveyForm({ onSave, onCancel }: NewSurveyFormProps) {
@@ -128,21 +133,7 @@ export function NewSurveyForm({ onSave, onCancel }: NewSurveyFormProps) {
     toast.success('New survey created successfully');
   };
 
-  const Section = ({ title, icon: Icon, children }: { title: string, icon: any, children: React.ReactNode }) => (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-6">
-      <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 flex items-center gap-3">
-        <Icon className="w-5 h-5 text-indigo-600" />
-        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">{title}</h3>
-      </div>
-      <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {children}
-      </div>
-    </div>
-  );
-
-  const FormInputField = ({ label, name, type = "text", required = false, options }: any) => (
-    <InputField label={label} name={name} type={type} required={required} options={options} formData={formData} handleChange={handleChange} />
-  );
+  // Components moved outside to prevent focus loss during re-renders
 
   return (
     <div className="flex flex-col h-full bg-gray-50/50 overflow-hidden">

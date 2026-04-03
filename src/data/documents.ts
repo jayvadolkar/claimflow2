@@ -9,9 +9,6 @@ export const INITIAL_DOCS: DocumentDef[] = [
     description: 'National Identity Proof',
     isSystem: true,
     required: false,
-    uploadRoles: ['handler', 'manager', 'admin'],
-    verifyRoles: ['manager', 'admin'],
-    rejectRoles: ['manager', 'admin'],
     fields: [
       { id: 'f1', code: 'aadhaar_number', label: 'Aadhaar Number', type: 'text', required: true, options: [] },
       { id: 'f2', code: 'aadhaar_name', label: 'Name on Card', type: 'text', required: true, options: [] }
@@ -22,10 +19,10 @@ export const INITIAL_DOCS: DocumentDef[] = [
     maxSizeMB: 5,
     multipleUpload: false,
     versioning: true,
-    applicableCases: ['Repair', 'Theft', 'Total Loss'],
+    applicableCases: ['Repair', 'Theft', 'Total Loss', 'Third Party'],
     vehicleTypes: ['2W', '4W', 'Others'],
     vehicleClasses: ['Commercial', 'Personal'],
-    hypothecation: 'Both'
+    hypothecation: ['Yes', 'No']
   },
   {
     id: 'doc-2',
@@ -35,9 +32,6 @@ export const INITIAL_DOCS: DocumentDef[] = [
     description: 'Tax ID Proof',
     isSystem: true,
     required: false,
-    uploadRoles: ['handler', 'manager', 'admin'],
-    verifyRoles: ['manager', 'admin'],
-    rejectRoles: ['manager', 'admin'],
     fields: [
       { id: 'f3', code: 'pan_number', label: 'PAN Number', type: 'text', required: true, options: [] },
       { id: 'f4', code: 'pan_name', label: 'Name on Card', type: 'text', required: true, options: [] }
@@ -47,10 +41,10 @@ export const INITIAL_DOCS: DocumentDef[] = [
     maxSizeMB: 5,
     multipleUpload: false,
     versioning: true,
-    applicableCases: ['Repair', 'Theft', 'Total Loss'],
+    applicableCases: ['Repair', 'Theft', 'Total Loss', 'Third Party'],
     vehicleTypes: ['2W', '4W', 'Others'],
     vehicleClasses: ['Commercial', 'Personal'],
-    hypothecation: 'Both'
+    hypothecation: ['Yes', 'No']
   },
   {
     id: 'doc-3',
@@ -60,9 +54,6 @@ export const INITIAL_DOCS: DocumentDef[] = [
     description: 'Vehicle Registration Document',
     isSystem: true,
     required: true,
-    uploadRoles: ['handler', 'manager', 'admin'],
-    verifyRoles: ['manager', 'admin'],
-    rejectRoles: ['manager', 'admin'],
     fields: [
       { id: 'f5', code: 'rc_number', label: 'Registration Number', type: 'text', required: true, options: [] },
       { id: 'f6', code: 'chassis_number', label: 'Chassis Number', type: 'text', required: true, options: [] },
@@ -73,10 +64,10 @@ export const INITIAL_DOCS: DocumentDef[] = [
     maxSizeMB: 10,
     multipleUpload: true,
     versioning: true,
-    applicableCases: ['Repair', 'Theft', 'Total Loss'],
+    applicableCases: ['Repair', 'Theft', 'Total Loss', 'Third Party'],
     vehicleTypes: ['2W', '4W', 'Others'],
     vehicleClasses: ['Commercial', 'Personal'],
-    hypothecation: 'Both'
+    hypothecation: ['Yes', 'No']
   },
   {
     id: 'doc-4',
@@ -86,9 +77,6 @@ export const INITIAL_DOCS: DocumentDef[] = [
     description: 'Driver License Document',
     isSystem: true,
     required: true,
-    uploadRoles: ['handler', 'manager', 'admin'],
-    verifyRoles: ['manager', 'admin'],
-    rejectRoles: ['manager', 'admin'],
     fields: [
       { id: 'f8', code: 'dl_number', label: 'License Number', type: 'text', required: true, options: [] },
       { id: 'f9', code: 'dl_name', label: 'Name', type: 'text', required: true, options: [] },
@@ -99,10 +87,10 @@ export const INITIAL_DOCS: DocumentDef[] = [
     maxSizeMB: 5,
     multipleUpload: false,
     versioning: true,
-    applicableCases: ['Repair', 'Theft', 'Total Loss'],
+    applicableCases: ['Repair', 'Theft', 'Total Loss', 'Third Party'],
     vehicleTypes: ['2W', '4W', 'Others'],
     vehicleClasses: ['Commercial', 'Personal'],
-    hypothecation: 'Both'
+    hypothecation: ['Yes', 'No']
   },
   {
     id: 'doc-5',
@@ -112,19 +100,16 @@ export const INITIAL_DOCS: DocumentDef[] = [
     description: 'Signed Claim Form',
     isSystem: true,
     required: true,
-    uploadRoles: ['handler', 'manager', 'admin'],
-    verifyRoles: ['manager', 'admin'],
-    rejectRoles: ['manager', 'admin'],
     fields: [],
     allowedTypes: ['PDF', 'JPG', 'PNG'],
     workflowStage: 'Evidence Collection',
     maxSizeMB: 5,
     multipleUpload: false,
     versioning: true,
-    applicableCases: ['Repair', 'Theft', 'Total Loss'],
+    applicableCases: ['Repair', 'Theft', 'Total Loss', 'Third Party'],
     vehicleTypes: ['2W', '4W', 'Others'],
     vehicleClasses: ['Commercial', 'Personal'],
-    hypothecation: 'Both'
+    hypothecation: ['Yes', 'No']
   },
   {
     id: 'doc-6',
@@ -134,9 +119,6 @@ export const INITIAL_DOCS: DocumentDef[] = [
     description: 'Repair Estimate from Garage',
     isSystem: true,
     required: true,
-    uploadRoles: ['handler', 'manager', 'admin'],
-    verifyRoles: ['manager', 'admin'],
-    rejectRoles: ['manager', 'admin'],
     fields: [],
     allowedTypes: ['PDF', 'JPG', 'PNG'],
     workflowStage: 'Inspection, AI Assessment & repair',
@@ -146,7 +128,7 @@ export const INITIAL_DOCS: DocumentDef[] = [
     applicableCases: ['Repair', 'Total Loss'],
     vehicleTypes: ['2W', '4W', 'Others'],
     vehicleClasses: ['Commercial', 'Personal'],
-    hypothecation: 'Both'
+    hypothecation: ['Yes', 'No']
   },
   {
     id: 'doc-7',
@@ -156,19 +138,16 @@ export const INITIAL_DOCS: DocumentDef[] = [
     description: 'Insurance Policy Document',
     isSystem: true,
     required: true,
-    uploadRoles: ['handler', 'manager', 'admin'],
-    verifyRoles: ['manager', 'admin'],
-    rejectRoles: ['manager', 'admin'],
     fields: [],
     allowedTypes: ['PDF', 'JPG', 'PNG'],
     workflowStage: 'Survey Create/Intake',
     maxSizeMB: 5,
     multipleUpload: false,
     versioning: true,
-    applicableCases: ['Repair', 'Theft', 'Total Loss'],
+    applicableCases: ['Repair', 'Theft', 'Total Loss', 'Third Party'],
     vehicleTypes: ['2W', '4W', 'Others'],
     vehicleClasses: ['Commercial', 'Personal'],
-    hypothecation: 'Both'
+    hypothecation: ['Yes', 'No']
   },
   {
     id: 'doc-8',
@@ -178,19 +157,16 @@ export const INITIAL_DOCS: DocumentDef[] = [
     description: 'Claim Intimation Details',
     isSystem: true,
     required: true,
-    uploadRoles: ['handler', 'manager', 'admin'],
-    verifyRoles: ['manager', 'admin'],
-    rejectRoles: ['manager', 'admin'],
     fields: [],
     allowedTypes: ['PDF', 'JPG', 'PNG'],
     workflowStage: 'Survey Create/Intake',
     maxSizeMB: 5,
     multipleUpload: false,
     versioning: true,
-    applicableCases: ['Repair', 'Theft', 'Total Loss'],
+    applicableCases: ['Repair', 'Theft', 'Total Loss', 'Third Party'],
     vehicleTypes: ['2W', '4W', 'Others'],
     vehicleClasses: ['Commercial', 'Personal'],
-    hypothecation: 'Both'
+    hypothecation: ['Yes', 'No']
   },
   {
     id: 'doc-9',
@@ -200,9 +176,6 @@ export const INITIAL_DOCS: DocumentDef[] = [
     description: 'Discharge Voucher',
     isSystem: true,
     required: true,
-    uploadRoles: ['handler', 'manager', 'admin'],
-    verifyRoles: ['manager', 'admin'],
-    rejectRoles: ['manager', 'admin'],
     fields: [],
     allowedTypes: ['PDF', 'JPG', 'PNG'],
     workflowStage: 'Settlement Stage',
@@ -212,7 +185,7 @@ export const INITIAL_DOCS: DocumentDef[] = [
     applicableCases: ['Repair', 'Total Loss'],
     vehicleTypes: ['2W', '4W', 'Others'],
     vehicleClasses: ['Commercial', 'Personal'],
-    hypothecation: 'Both'
+    hypothecation: ['Yes', 'No']
   },
   {
     id: 'doc-10',
@@ -222,9 +195,6 @@ export const INITIAL_DOCS: DocumentDef[] = [
     description: 'No Objection Certificate from Bank',
     isSystem: true,
     required: true,
-    uploadRoles: ['handler', 'manager', 'admin'],
-    verifyRoles: ['manager', 'admin'],
-    rejectRoles: ['manager', 'admin'],
     fields: [],
     allowedTypes: ['PDF', 'JPG', 'PNG'],
     workflowStage: 'Evidence Collection',
@@ -234,7 +204,7 @@ export const INITIAL_DOCS: DocumentDef[] = [
     applicableCases: ['Theft', 'Total Loss'],
     vehicleTypes: ['2W', '4W', 'Others'],
     vehicleClasses: ['Commercial', 'Personal'],
-    hypothecation: 'Yes'
+    hypothecation: ['Yes']
   },
   {
     id: 'doc-11',
@@ -244,9 +214,6 @@ export const INITIAL_DOCS: DocumentDef[] = [
     description: 'Termination of Hypothecation',
     isSystem: true,
     required: true,
-    uploadRoles: ['handler', 'manager', 'admin'],
-    verifyRoles: ['manager', 'admin'],
-    rejectRoles: ['manager', 'admin'],
     fields: [],
     allowedTypes: ['PDF', 'JPG', 'PNG'],
     workflowStage: 'Evidence Collection',
@@ -256,7 +223,7 @@ export const INITIAL_DOCS: DocumentDef[] = [
     applicableCases: ['Theft', 'Total Loss'],
     vehicleTypes: ['2W', '4W', 'Others'],
     vehicleClasses: ['Commercial', 'Personal'],
-    hypothecation: 'Yes'
+    hypothecation: ['Yes']
   },
   {
     id: 'doc-12',
@@ -266,19 +233,16 @@ export const INITIAL_DOCS: DocumentDef[] = [
     description: 'Commercial Vehicle Permit',
     isSystem: true,
     required: true,
-    uploadRoles: ['handler', 'manager', 'admin'],
-    verifyRoles: ['manager', 'admin'],
-    rejectRoles: ['manager', 'admin'],
     fields: [],
     allowedTypes: ['PDF', 'JPG', 'PNG'],
     workflowStage: 'Evidence Collection',
     maxSizeMB: 5,
     multipleUpload: false,
     versioning: true,
-    applicableCases: ['Repair', 'Theft', 'Total Loss'],
+    applicableCases: ['Repair', 'Theft', 'Total Loss', 'Third Party'],
     vehicleTypes: ['4W', 'Others'],
     vehicleClasses: ['Commercial'],
-    hypothecation: 'Both'
+    hypothecation: ['Yes', 'No']
   },
   {
     id: 'doc-13',
@@ -288,19 +252,16 @@ export const INITIAL_DOCS: DocumentDef[] = [
     description: 'Vehicle Fitness Certificate',
     isSystem: true,
     required: true,
-    uploadRoles: ['handler', 'manager', 'admin'],
-    verifyRoles: ['manager', 'admin'],
-    rejectRoles: ['manager', 'admin'],
     fields: [],
     allowedTypes: ['PDF', 'JPG', 'PNG'],
     workflowStage: 'Evidence Collection',
     maxSizeMB: 5,
     multipleUpload: false,
     versioning: true,
-    applicableCases: ['Repair', 'Theft', 'Total Loss'],
+    applicableCases: ['Repair', 'Theft', 'Total Loss', 'Third Party'],
     vehicleTypes: ['4W', 'Others'],
     vehicleClasses: ['Commercial'],
-    hypothecation: 'Both'
+    hypothecation: ['Yes', 'No']
   },
   {
     id: 'doc-14',
@@ -310,19 +271,16 @@ export const INITIAL_DOCS: DocumentDef[] = [
     description: 'First Information Report',
     isSystem: true,
     required: true,
-    uploadRoles: ['handler', 'manager', 'admin'],
-    verifyRoles: ['manager', 'admin'],
-    rejectRoles: ['manager', 'admin'],
     fields: [],
     allowedTypes: ['PDF', 'JPG', 'PNG'],
     workflowStage: 'Evidence Collection',
     maxSizeMB: 5,
     multipleUpload: false,
     versioning: true,
-    applicableCases: ['Theft'],
+    applicableCases: ['Theft', 'Third Party'],
     vehicleTypes: ['2W', '4W', 'Others'],
     vehicleClasses: ['Commercial', 'Personal'],
-    hypothecation: 'Both'
+    hypothecation: ['Yes', 'No']
   },
   {
     id: 'doc-15',
@@ -332,9 +290,6 @@ export const INITIAL_DOCS: DocumentDef[] = [
     description: 'Photos taken at the spot of accident',
     isSystem: true,
     required: false,
-    uploadRoles: ['handler', 'manager', 'admin'],
-    verifyRoles: ['manager', 'admin'],
-    rejectRoles: ['manager', 'admin'],
     fields: [],
     allowedTypes: ['JPG', 'PNG'],
     workflowStage: 'Evidence Collection',
@@ -344,7 +299,7 @@ export const INITIAL_DOCS: DocumentDef[] = [
     applicableCases: ['Repair', 'Total Loss'],
     vehicleTypes: ['2W', '4W', 'Others'],
     vehicleClasses: ['Commercial', 'Personal'],
-    hypothecation: 'Both'
+    hypothecation: ['Yes', 'No']
   },
   {
     id: 'doc-16',
@@ -354,9 +309,6 @@ export const INITIAL_DOCS: DocumentDef[] = [
     description: 'Pencil trace of chassis number',
     isSystem: true,
     required: true,
-    uploadRoles: ['handler', 'manager', 'admin'],
-    verifyRoles: ['manager', 'admin'],
-    rejectRoles: ['manager', 'admin'],
     fields: [],
     allowedTypes: ['JPG', 'PNG'],
     workflowStage: 'Evidence Collection',
@@ -366,7 +318,7 @@ export const INITIAL_DOCS: DocumentDef[] = [
     applicableCases: ['Theft', 'Total Loss'],
     vehicleTypes: ['2W', '4W', 'Others'],
     vehicleClasses: ['Commercial', 'Personal'],
-    hypothecation: 'Both'
+    hypothecation: ['Yes', 'No']
   },
   {
     id: 'doc-17',
@@ -376,9 +328,6 @@ export const INITIAL_DOCS: DocumentDef[] = [
     description: 'Original keys of the vehicle',
     isSystem: true,
     required: true,
-    uploadRoles: ['handler', 'manager', 'admin'],
-    verifyRoles: ['manager', 'admin'],
-    rejectRoles: ['manager', 'admin'],
     fields: [],
     allowedTypes: ['JPG', 'PNG'],
     workflowStage: 'Evidence Collection',
@@ -388,7 +337,7 @@ export const INITIAL_DOCS: DocumentDef[] = [
     applicableCases: ['Theft'],
     vehicleTypes: ['2W', '4W', 'Others'],
     vehicleClasses: ['Commercial', 'Personal'],
-    hypothecation: 'Both'
+    hypothecation: ['Yes', 'No']
   },
   {
     id: 'doc-18',
@@ -398,9 +347,6 @@ export const INITIAL_DOCS: DocumentDef[] = [
     description: 'Original vehicle purchase invoice',
     isSystem: true,
     required: false,
-    uploadRoles: ['handler', 'manager', 'admin'],
-    verifyRoles: ['manager', 'admin'],
-    rejectRoles: ['manager', 'admin'],
     fields: [],
     allowedTypes: ['PDF', 'JPG', 'PNG'],
     workflowStage: 'Evidence Collection',
@@ -410,7 +356,7 @@ export const INITIAL_DOCS: DocumentDef[] = [
     applicableCases: ['Theft', 'Total Loss'],
     vehicleTypes: ['2W', '4W', 'Others'],
     vehicleClasses: ['Commercial', 'Personal'],
-    hypothecation: 'Both'
+    hypothecation: ['Yes', 'No']
   },
   {
     id: 'doc-19',
@@ -420,19 +366,16 @@ export const INITIAL_DOCS: DocumentDef[] = [
     description: 'Road tax payment receipt',
     isSystem: true,
     required: false,
-    uploadRoles: ['handler', 'manager', 'admin'],
-    verifyRoles: ['manager', 'admin'],
-    rejectRoles: ['manager', 'admin'],
     fields: [],
     allowedTypes: ['PDF', 'JPG', 'PNG'],
     workflowStage: 'Evidence Collection',
     maxSizeMB: 5,
     multipleUpload: false,
     versioning: true,
-    applicableCases: ['Repair', 'Theft', 'Total Loss'],
+    applicableCases: ['Repair', 'Theft', 'Total Loss', 'Third Party'],
     vehicleTypes: ['2W', '4W', 'Others'],
     vehicleClasses: ['Commercial', 'Personal'],
-    hypothecation: 'Both'
+    hypothecation: ['Yes', 'No']
   },
   {
     id: 'doc-20',
@@ -442,19 +385,16 @@ export const INITIAL_DOCS: DocumentDef[] = [
     description: 'Goods load challan for commercial vehicles',
     isSystem: true,
     required: true,
-    uploadRoles: ['handler', 'manager', 'admin'],
-    verifyRoles: ['manager', 'admin'],
-    rejectRoles: ['manager', 'admin'],
     fields: [],
     allowedTypes: ['PDF', 'JPG', 'PNG'],
     workflowStage: 'Evidence Collection',
     maxSizeMB: 5,
     multipleUpload: false,
     versioning: true,
-    applicableCases: ['Repair', 'Theft', 'Total Loss'],
+    applicableCases: ['Repair', 'Theft', 'Total Loss', 'Third Party'],
     vehicleTypes: ['4W', 'Others'],
     vehicleClasses: ['Commercial'],
-    hypothecation: 'Both'
+    hypothecation: ['Yes', 'No']
   },
   {
     id: 'doc-21',
@@ -464,9 +404,6 @@ export const INITIAL_DOCS: DocumentDef[] = [
     description: 'Written statement from the driver',
     isSystem: true,
     required: true,
-    uploadRoles: ['handler', 'manager', 'admin'],
-    verifyRoles: ['manager', 'admin'],
-    rejectRoles: ['manager', 'admin'],
     fields: [],
     allowedTypes: ['PDF', 'JPG', 'PNG'],
     workflowStage: 'Evidence Collection',
@@ -476,6 +413,6 @@ export const INITIAL_DOCS: DocumentDef[] = [
     applicableCases: ['Repair', 'Total Loss'],
     vehicleTypes: ['2W', '4W', 'Others'],
     vehicleClasses: ['Commercial', 'Personal'],
-    hypothecation: 'Both'
+    hypothecation: ['Yes', 'No']
   }
 ];
