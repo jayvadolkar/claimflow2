@@ -7,6 +7,7 @@ import { NewSurveyForm } from './components/NewSurveyForm';
 import { AutomationsView } from './components/AutomationsView';
 import { HomeView } from './components/HomeView';
 import { GlobalSettingsView } from './components/GlobalSettingsView';
+import { GlobalCommsView } from './components/comms/GlobalCommsView';
 import { LoginView } from './components/LoginView';
 import { Survey } from './types';
 import { api } from './services/api';
@@ -210,6 +211,12 @@ export default function App() {
               )}
               {currentView === 'automations' && (
                 <AutomationsView />
+              )}
+              {currentView === 'communication' && (
+                <GlobalCommsView
+                  surveys={surveys}
+                  onUpdateSurvey={handleUpdateSurvey}
+                />
               )}
               {['me', 'team', 'claims', 'reports', 'users', 'settings'].includes(currentView) && (
                 <div className="flex-1 flex items-center justify-center text-gray-500">

@@ -1,11 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, Bell, UserPlus, MoveRight, Zap, XCircle, Calendar, ChevronLeft, ChevronRight, X, MessageSquare, Plus, Briefcase, Users, Building2, FolderOpen, FileText, ChevronDown } from 'lucide-react';
+import { Search, Filter, Bell, UserPlus, MoveRight, Zap, XCircle, Calendar, ChevronLeft, ChevronRight, X, Plus, Briefcase, Users, Building2, FolderOpen, FileText, ChevronDown } from 'lucide-react';
 import { Survey, UserRole } from '../types';
 import { api } from '../services/api';
 import { useRBAC } from '../hooks/useRBAC';
 import toast from 'react-hot-toast';
 import { ProgressSection } from './ProgressSection';
-import { CommunicationTab } from './tabs/CommunicationTab';
 import { GlobalEvidenceView } from './GlobalEvidenceView';
 import { GlobalDocsView } from './GlobalDocsView';
 
@@ -20,7 +19,7 @@ interface SurveysViewProps {
 
 export function SurveysView({ surveys, onSurveyClick, onUpdateSurvey, onCreateSurvey, userRole, isReadOnly }: SurveysViewProps) {
   const { hasPermission } = useRBAC(userRole);
-  const [activeMainTab, setActiveMainTab] = useState<'dashboard' | 'survey_list' | 'communication' | 'evidence' | 'docs'>('survey_list');
+  const [activeMainTab, setActiveMainTab] = useState<'dashboard' | 'survey_list' | 'evidence' | 'docs'>('survey_list');
   const [activeSubTab, setActiveSubTab] = useState<'new' | 'in_progress' | 'all' | 'cancelled' | 'completed'>('new');
   const [scope, setScope] = useState<'me' | 'team' | 'company'>(
     userRole === 'role-handler' ? 'me' : userRole === 'role-manager' ? 'team' : 'company'
@@ -260,26 +259,7 @@ export function SurveysView({ surveys, onSurveyClick, onUpdateSurvey, onCreateSu
             >
               Document Collection
             </button>
-            <button
-              className={`pb-3 text-sm font-semibold border-b-2 transition-all ${
-                activeMainTab === 'communication'
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
-              }`}
-              onClick={() => setActiveMainTab('communication')}
-            >
-              Communication
-            </button>
-            <button
-              className={`pb-3 text-sm font-semibold border-b-2 transition-all ${
-                activeMainTab === 'evidence'
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
-              }`}
-              onClick={() => setActiveMainTab('evidence')}
-            >
-              Evidence
-            </button>
+
           </div>
 
           {hasPermission('survey.assign') && (
@@ -432,61 +412,6 @@ export function SurveysView({ surveys, onSurveyClick, onUpdateSurvey, onCreateSu
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      ) : activeMainTab === 'communication' ? (
-        <div className="flex-1 flex overflow-hidden">
-          {/* Survey Selector for Communication */}
-          <div className="w-80 border-r border-gray-200 bg-white flex flex-col shrink-0">
-            <div className="p-4 border-b border-gray-200">
-              <h3 className="text-sm font-bold text-gray-900 mb-4">Select Survey</h3>
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input 
-                  type="text" 
-                  placeholder="Search surveys..." 
-                  className="w-full pl-9 pr-4 py-2 bg-gray-50 border-transparent rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all"
-                />
-              </div>
-            </div>
-            <div className="flex-1 overflow-y-auto">
-              {filteredSurveys.map(survey => (
-                <button
-                  key={survey.id}
-                  onClick={() => setSelectedCommunicationSurveyId(survey.id)}
-                  className={`w-full p-4 text-left border-b border-gray-100 transition-all ${
-                    selectedCommunicationSurveyId === survey.id ? 'bg-indigo-50' : 'hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold text-indigo-600">{survey.id}</span>
-                    <span className="text-[10px] text-gray-400">{formatLastUpdated(survey.lastUpdated)}</span>
-                  </div>
-                  <p className="text-sm font-semibold text-gray-900 truncate">{survey.vehicle}</p>
-                  <p className="text-xs text-gray-500 truncate">{survey.customerName}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Communication Tab Content */}
-          <div className="flex-1 bg-gray-50 overflow-hidden">
-            {selectedCommunicationSurveyId ? (
-              <div className="h-full flex flex-col">
-                <div className="flex-1 min-h-0">
-                  <CommunicationTab 
-                    survey={surveys.find(s => s.id === selectedCommunicationSurveyId)!} 
-                    onUpdateSurvey={onUpdateSurvey}
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center text-gray-500 bg-white">
-                <MessageSquare className="w-12 h-12 mb-4 opacity-20" />
-                <p className="text-lg font-medium">Select a survey to view communication</p>
-                <p className="text-sm">Choose a survey from the left panel to start messaging.</p>
-              </div>
-            )}
           </div>
         </div>
       ) : activeMainTab === 'evidence' ? (

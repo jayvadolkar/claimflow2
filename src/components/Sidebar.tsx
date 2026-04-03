@@ -1,19 +1,20 @@
 import React from 'react';
 import { 
   Home, User, Users, ClipboardList, Shield, 
-  BarChart2, Folder, Settings, Zap, FileText
+  BarChart2, Folder, Settings, Zap, FileText, MessageSquare
 } from 'lucide-react';
 
 export function Sidebar({ currentView, previousView, onNavigate }: { currentView: string, previousView?: string, onNavigate: (view: string) => void }) {
   const navItems = [
-    { id: 'home', name: 'Home', icon: Home },
-    { id: 'intimation', name: 'Intimation', icon: FileText },
-    { id: 'surveys', name: 'Surveys', icon: ClipboardList },
-    { id: 'claims', name: 'Claims', icon: Shield },
-    { id: 'automations', name: 'Automations', icon: Zap },
-    { id: 'reports', name: 'Reports', icon: BarChart2 },
-    { id: 'users', name: 'Users', icon: Users },
-    { id: 'settings', name: 'Settings', icon: Settings },
+    { id: 'home',          name: 'Home',          icon: Home          },
+    { id: 'intimation',    name: 'Intimation',    icon: FileText      },
+    { id: 'surveys',       name: 'Surveys',       icon: ClipboardList },
+    { id: 'communication', name: 'Comms',         icon: MessageSquare },
+    { id: 'claims',        name: 'Claims',        icon: Shield        },
+    { id: 'automations',   name: 'Automations',   icon: Zap          },
+    { id: 'reports',       name: 'Reports',       icon: BarChart2    },
+    { id: 'users',         name: 'Users',         icon: Users        },
+    { id: 'settings',      name: 'Settings',      icon: Settings     },
   ];
 
   return (

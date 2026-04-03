@@ -170,6 +170,77 @@ export interface SurveyEvent {
   timestamp: string;
 }
 
+// ── Communication: Party Identity ─────────────────────────────────────────────
+export type PartyRole = 'insured' | 'garage' | 'surveyor' | 'insurer' | 'internal';
+
+export interface CommParty {
+  role: PartyRole;
+  name: string;
+  mobile?: string;
+  email?: string;
+}
+
+// ── Communication: Channels + Messages ────────────────────────────────────────
+export type CommChannel = 'whatsapp' | 'sms' | 'email' | 'internal';
+export type MessageStatus = 'queued' | 'sent' | 'delivered' | 'read' | 'failed';
+export type MessageSender = 'handler' | 'participant' | 'system';
+
+export interface CommAttachment {
+  name: string;
+  type: string;
+  size: string;
+  url?: string;
+}
+
+export interface CommMessage {
+  id: string;
+  channel: CommChannel;
+  sender: MessageSender;
+  senderName?: string;
+  content: string;
+  timestamp: string;           // ISO 8601
+  status?: MessageStatus;
+  failureReason?: string;
+  retryCount?: number;
+  attachments?: CommAttachment[];
+  templateId?: string;
+  isAutoEvent?: boolean;
+  eventLabel?: string;
+}
+
+export interface CommThread {
+  id: string;                  // surveyId + ':' + partyRole
+  surveyId: string;
+  party: CommParty;
+  messages: CommMessage[];
+  unreadCount: number;
+  lastMessage?: string;
+  lastActivityAt?: string;     // ISO timestamp
+  threadStatus: 'active' | 'waiting' | 'closed';
+}
+
+// ── Untagged (ghost flow) conversations ──────────────────────────────────────
+export type GhostFlowState =
+  | 'collecting_vehicle_no'
+  | 'collecting_claim_no'
+  | 'awaiting_tagging'
+  | 'tagged'
+  | 'dismissed';
+
+export interface UntaggedConversation {
+  id: string;
+  channel: CommChannel;
+  senderIdentifier: string;
+  messages: CommMessage[];
+  ghostFlowState: GhostFlowState;
+  collectedVehicleNo?: string;
+  collectedClaimNo?: string;
+  createdAt: string;
+  taggedToSurveyId?: string;
+  taggedBy?: string;
+  taggedAt?: string;
+}
+
 export interface Survey {
   id: string; // e.g., IAR-2510-154315
   ref: string; // GUID
@@ -218,6 +289,9 @@ export interface Survey {
   zone: string;
   state: string;
   surveyor: string;
+  surveyorPhone?: string;
+  surveyorEmail?: string;
+  insurerEmail?: string;
   documentCollector: string;
   requestFor: string;
   remarks: string;
@@ -225,5 +299,7 @@ export interface Survey {
   documents?: any[];
   photos?: any[];
   assessmentData?: any;
+  /** @deprecated use threads */
   communicationThreads?: any[];
+  threads?: CommThread[];
 }
