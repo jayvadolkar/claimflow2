@@ -15,7 +15,11 @@
 import { Survey, SurveyEvent } from '../types';
 import { dummySurveys } from '../data';
 import { INITIAL_DOCS } from '../data/documents';
+import { INITIAL_DOCUMENT_RULES } from '../data/documentRules';
+import { INITIAL_IMAGE_RULES } from '../data/imageRules';
+import { INITIAL_SURVEY_PROFILES } from '../data/surveyProfiles';
 import { SEED_ROLES } from '../data/roles';
+import { SEED_USERS } from '../data/users';
 import { SendMessagePayload } from './commTypes';
 import { UntaggedConversation } from '../types';
 
@@ -87,16 +91,16 @@ const mock = {
   getDocuments: (): any[] => LS.get('documents', INITIAL_DOCS),
   saveDocuments: (docs: any[]) => LS.set('documents', docs),
 
-  getDocumentRules: (): any[] => LS.get('documentRules', []),
+  getDocumentRules: (): any[] => LS.get('documentRules', INITIAL_DOCUMENT_RULES),
   saveDocumentRules: (rules: any[]) => LS.set('documentRules', rules),
 
-  getImageRules: (): any[] => LS.get('imageRules', []),
+  getImageRules: (): any[] => LS.get('imageRules', INITIAL_IMAGE_RULES),
   saveImageRules: (rules: any[]) => LS.set('imageRules', rules),
 
-  getSurveyProfiles: (): any[] => LS.get('surveyProfiles', []),
+  getSurveyProfiles: (): any[] => LS.get('surveyProfiles', INITIAL_SURVEY_PROFILES),
   saveSurveyProfiles: (profiles: any[]) => LS.set('surveyProfiles', profiles),
 
-  getUsers: (): any[] => LS.get('users', DEFAULT_USERS),
+  getUsers: (): any[] => LS.get('users', SEED_USERS),
   saveUsers: (users: any[]) => LS.set('users', users),
 
   getRoles: (): any[] => LS.get('roles', SEED_ROLES),
