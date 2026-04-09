@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { Survey, CommThread, CommMessage, CommChannel, UntaggedConversation, GhostFlowState } from '../../types';
-import { SurveyThreadList } from './SurveyThreadList';
-import { ConversationPanel } from './ConversationPanel';
-import { MessageComposer } from './MessageComposer';
+import { CommunicationTab } from '../tabs/CommunicationTab';
+import { PersonCommsModal } from './PersonCommsModal';
 import { defaultCommTemplates } from '../../data/commTemplates';
 import { api } from '../../services/api';
 import toast from 'react-hot-toast';
 import {
   Search, MessageSquare, AlertCircle, BarChart2,
-  Inbox, Tag, XCircle, Clock, CheckCircle2, ChevronRight, User
+  Inbox, Tag, XCircle, Clock, CheckCircle2, ChevronRight, User, Smartphone
 } from 'lucide-react';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -75,6 +74,25 @@ const MOCK_UNTAGGED: UntaggedConversation[] = [
       { id: 'u7', channel: 'sms', sender: 'system', content: 'Got it! Now please share your Claim Number.', timestamp: new Date(Date.now() - 5 * 60000).toISOString() },
     ],
   },
+  {
+    id: 'unt-003',
+    channel: 'email',
+    senderIdentifier: 'manager@quickfixmotors.com',
+    ghostFlowState: 'awaiting_tagging',
+    collectedVehicleNo: 'MH02XY9999',
+    createdAt: new Date(Date.now() - 60 * 60000).toISOString(),
+    messages: [
+      { 
+        id: 'u8', 
+        channel: 'email', 
+        sender: 'participant', 
+        senderName: 'QuickFix Motors',
+        subject: 'Supplement Request for MH02XY9999',
+        content: 'Hello Zoop team,\n\nWe have received the vehicle MH02XY9999. Can you please link this to the appropriate claim and approve the supplement attached?\n\nRegards,\nQuickFix Motors', 
+        timestamp: new Date(Date.now() - 60 * 60000).toISOString() 
+      },
+    ],
+  },
 ];
 
 const GHOST_STATE_LABELS: Record<GhostFlowState, { label: string; color: string }> = {
@@ -97,6 +115,7 @@ type SubView = 'surveys' | 'untagged' | 'dashboard';
 
 export function GlobalCommsView({ surveys, onUpdateSurvey }: GlobalCommsViewProps) {
   const [subView, setSubView] = useState<SubView>('surveys');
+  const [personModalIdentifier, setPersonModalIdentifier] = useState<string | null>(null);
 
   return (
     <div className="flex flex-col h-full bg-white overflow-hidden">
@@ -129,20 +148,26 @@ export function GlobalCommsView({ surveys, onUpdateSurvey }: GlobalCommsViewProp
 
       {/* Content */}
       <div className="flex-1 overflow-hidden">
-        {subView === 'surveys'   && <SurveysSubView surveys={surveys} onUpdateSurvey={onUpdateSurvey} />}
-        {subView === 'untagged'  && <UntaggedSubView surveys={surveys} />}
+        {subView === 'surveys'   && <SurveysSubView surveys={surveys} onUpdateSurvey={onUpdateSurvey} onPersonClick={setPersonModalIdentifier} />}
+        {subView === 'untagged'  && <UntaggedSubView surveys={surveys} onUpdateSurvey={onUpdateSurvey} />}
         {subView === 'dashboard' && <DashboardSubView surveys={surveys} />}
       </div>
+
+      {personModalIdentifier && (
+        <PersonCommsModal
+          identifier={personModalIdentifier}
+          surveys={surveys}
+          onClose={() => setPersonModalIdentifier(null)}
+        />
+      )}
     </div>
   );
 }
 
 // ── Surveys sub-view ──────────────────────────────────────────────────────────
-function SurveysSubView({ surveys, onUpdateSurvey }: { surveys: Survey[]; onUpdateSurvey: (s: Survey) => void }) {
+function SurveysSubView({ surveys, onUpdateSurvey, onPersonClick }: { surveys: Survey[]; onUpdateSurvey: (s: Survey) => void; onPersonClick: (id: string) => void }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSurveyId, setSelectedSurveyId] = useState<string | null>(null);
-  const [surveyThreads, setSurveyThreads] = useState<Record<string, CommThread[]>>({});
-  const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
 
   const filtered = surveys.filter(s => {
     const q = searchQuery.toLowerCase();
@@ -152,70 +177,9 @@ function SurveysSubView({ surveys, onUpdateSurvey }: { surveys: Survey[]; onUpda
 
   const selectedSurvey = surveys.find(s => s.id === selectedSurveyId);
 
-  const getThreads = (survey: Survey): CommThread[] => {
-    if (surveyThreads[survey.id]) return surveyThreads[survey.id];
-    const built = buildThreadsFromSurvey(survey);
-    setSurveyThreads(prev => ({ ...prev, [survey.id]: built }));
-    return built;
-  };
-
   const handleSelectSurvey = (survey: Survey) => {
     setSelectedSurveyId(survey.id);
-    const threads = getThreads(survey);
-    setActiveThreadId(threads[0]?.id ?? null);
   };
-
-  const handleSelectThread = (threadId: string) => {
-    setActiveThreadId(threadId);
-    setSurveyThreads(prev => {
-      if (!selectedSurveyId) return prev;
-      return {
-        ...prev,
-        [selectedSurveyId]: (prev[selectedSurveyId] ?? []).map(t =>
-          t.id !== threadId ? t : { ...t, unreadCount: 0 }
-        ),
-      };
-    });
-  };
-
-  const handleSend = (content: string, channel: CommChannel) => {
-    if (!selectedSurveyId || !activeThreadId) return;
-    const now = new Date().toISOString();
-    const msg: CommMessage = {
-      id: `msg-${Date.now()}`,
-      channel,
-      sender: 'handler',
-      content,
-      timestamp: now,
-      status: 'sent',
-    };
-    setSurveyThreads(prev => ({
-      ...prev,
-      [selectedSurveyId]: (prev[selectedSurveyId] ?? []).map(t =>
-        t.id !== activeThreadId ? t : {
-          ...t,
-          messages: [...t.messages, msg],
-          lastMessage: content,
-          lastActivityAt: now,
-        }
-      ),
-    }));
-    const updated = surveys.find(s => s.id === selectedSurveyId);
-    if (updated) {
-      onUpdateSurvey({ ...updated, threads: surveyThreads[selectedSurveyId] ?? [] });
-    }
-    api.logEvent(selectedSurveyId, {
-      eventName: 'Message Sent',
-      actor: 'Handler',
-      triggerCondition: `Global comms — manual send via ${channel}`,
-      systemAction: `Sent message via ${channel}`,
-      outcomeState: 'Sent',
-    }).catch(console.error);
-    toast.success('Message sent');
-  };
-
-  const currentThreads = selectedSurveyId ? (surveyThreads[selectedSurveyId] ?? []) : [];
-  const activeThread = currentThreads.find(t => t.id === activeThreadId) ?? currentThreads[0];
 
   return (
     <div className="flex h-full">
@@ -235,8 +199,6 @@ function SurveysSubView({ surveys, onUpdateSurvey }: { surveys: Survey[]; onUpda
         </div>
         <div className="flex-1 overflow-y-auto">
           {filtered.map(survey => {
-            const threads = surveyThreads[survey.id] ?? [];
-            const totalUnread = threads.reduce((acc, t) => acc + t.unreadCount, 0);
             const isSelected = selectedSurveyId === survey.id;
             return (
               <button
@@ -256,11 +218,6 @@ function SurveysSubView({ surveys, onUpdateSurvey }: { surveys: Survey[]; onUpda
                     <span className="text-[10px] text-gray-400">
                       {formatRelative(survey.lastUpdated)}
                     </span>
-                    {totalUnread > 0 && (
-                      <span className="bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                        {totalUnread}
-                      </span>
-                    )}
                   </div>
                 </div>
               </button>
@@ -272,38 +229,15 @@ function SurveysSubView({ surveys, onUpdateSurvey }: { surveys: Survey[]; onUpda
         </div>
       </div>
 
-      {/* Thread list */}
-      {selectedSurvey && currentThreads.length > 0 && (
-        <div className="w-64 border-r border-gray-200 shrink-0 overflow-hidden bg-white flex flex-col">
-          <SurveyThreadList
-            threads={currentThreads}
-            activeThreadId={activeThreadId}
-            onSelectThread={handleSelectThread}
-          />
-        </div>
-      )}
-
-      {/* Conversation */}
-      <div className="flex-1 flex flex-col min-w-0 bg-white">
-        {activeThread ? (
-          <>
-            <div className="px-5 py-3.5 border-b border-gray-200 flex items-center gap-3 shrink-0">
-              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                <User className="w-4 h-4 text-gray-500" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-gray-900">{activeThread.party.name}</p>
-                <p className="text-[10px] text-gray-400 uppercase tracking-wider">{activeThread.party.role} · {selectedSurvey?.id}</p>
-              </div>
-            </div>
-            <ConversationPanel thread={activeThread} />
-            <MessageComposer thread={activeThread} templates={defaultCommTemplates} onSend={handleSend} />
-          </>
+      {/* Communication Output */}
+      <div className="flex-1 flex flex-col min-w-0 bg-gray-50/10">
+        {selectedSurvey ? (
+          <CommunicationTab survey={selectedSurvey} onUpdateSurvey={onUpdateSurvey} onPersonClick={onPersonClick} />
         ) : (
           <EmptyState
             icon={<MessageSquare className="w-10 h-10 text-gray-200" />}
-            title={selectedSurvey ? 'No threads found' : 'Select a survey'}
-            desc={selectedSurvey ? 'No threads available for this survey' : 'Choose a survey from the left to start messaging'}
+            title="Select a survey"
+            desc="Choose a survey from the left to start messaging"
           />
         )}
       </div>
@@ -312,7 +246,7 @@ function SurveysSubView({ surveys, onUpdateSurvey }: { surveys: Survey[]; onUpda
 }
 
 // ── Untagged sub-view ─────────────────────────────────────────────────────────
-function UntaggedSubView({ surveys }: { surveys: Survey[] }) {
+function UntaggedSubView({ surveys, onUpdateSurvey }: { surveys: Survey[], onUpdateSurvey: (s: Survey) => void }) {
   const [conversations, setConversations] = useState<UntaggedConversation[]>(MOCK_UNTAGGED);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [taggingSurveySearch, setTaggingSurveySearch] = useState('');
@@ -322,6 +256,45 @@ function UntaggedSubView({ surveys }: { surveys: Survey[] }) {
   const active = conversations.filter(c => c.ghostFlowState !== 'tagged' && c.ghostFlowState !== 'dismissed');
 
   const handleTag = (surveyId: string) => {
+    if (!selected) return;
+
+    // Apply to survey
+    const targetSurvey = surveys.find(s => s.id === surveyId);
+    if (targetSurvey) {
+      if (selected.channel === 'email') {
+        const emailTickets = targetSurvey.emailTickets ? [...targetSurvey.emailTickets] : [];
+        emailTickets.push({
+          id: `ticket-tagged-${Date.now()}`,
+          surveyId: targetSurvey.id,
+          subject: selected.messages[0]?.subject || 'Inbound Untagged Request',
+          updatedAt: new Date().toISOString(),
+          participants: [{ role: 'garage', name: selected.senderIdentifier, email: selected.senderIdentifier, type: 'to' }],
+          status: 'open',
+          messages: selected.messages.map(m => ({
+             ...m,
+             senderName: m.senderName || selected.senderIdentifier
+          })),
+          unreadCount: 1
+        });
+        onUpdateSurvey({ ...targetSurvey, emailTickets });
+      } else {
+        const threads = targetSurvey.threads ? [...targetSurvey.threads] : [];
+        if (threads.length === 0) {
+           threads.push({
+             id: `${targetSurvey.id}:insured`,
+             surveyId: targetSurvey.id,
+             party: { role: 'insured', name: targetSurvey.customerName || selected.senderIdentifier, mobile: selected.senderIdentifier },
+             messages: selected.messages,
+             threadStatus: 'active',
+             unreadCount: 1
+           });
+        } else {
+           threads[0].messages = [...threads[0].messages, ...selected.messages];
+        }
+        onUpdateSurvey({ ...targetSurvey, threads });
+      }
+    }
+
     setConversations(prev => prev.map(c =>
       c.id !== selectedId ? c : { ...c, ghostFlowState: 'tagged', taggedToSurveyId: surveyId, taggedAt: new Date().toISOString() }
     ));

@@ -7,6 +7,7 @@ interface MessageComposerProps {
   thread: CommThread;
   templates: CommTemplate[];
   onSend: (content: string, channel: CommChannel) => void;
+  activeTab: CommChannel;
 }
 
 const CHANNEL_CONFIG: { id: CommChannel; label: string; Icon: React.ElementType; color: string }[] = [
@@ -23,24 +24,27 @@ function fillTemplate(content: string, thread: CommThread): string {
     .replace(/{{vehicleNo}}/g, thread.surveyId);
 }
 
-export function MessageComposer({ thread, templates, onSend }: MessageComposerProps) {
+export function MessageComposer({ thread, templates, onSend, activeTab }: MessageComposerProps) {
   const isInternal = thread.party.role === 'internal';
-  const [selectedChannel, setSelectedChannel] = useState<CommChannel>(
-    isInternal ? 'internal' : 'whatsapp'
-  );
+  
+  // Hide composer entirely if on SMS tab (except for internal notes which don't really have tabs but just in case)
+  if (activeTab === 'sms' && !isInternal) return null;
+
   const [message, setMessage] = useState('');
   const [showTemplates, setShowTemplates] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Templates applicable to this party role
+  // Templates applicable to this party role and active channel
   const applicableTemplates = templates.filter(
-    t => t.isActive && (t.targetRoles.includes(thread.party.role) || t.targetRoles.length === 0)
+    t => t.isActive && 
+         (t.targetRoles.includes(thread.party.role) || t.targetRoles.length === 0) &&
+         (t.channels.includes(activeTab) || activeTab === 'internal')
   );
 
   const handleSend = () => {
     const trimmed = message.trim();
     if (!trimmed) return;
-    onSend(trimmed, selectedChannel);
+    onSend(trimmed, activeTab);
     setMessage('');
     setShowTemplates(false);
     setTimeout(() => textareaRef.current?.focus(), 50);
@@ -55,11 +59,6 @@ export function MessageComposer({ thread, templates, onSend }: MessageComposerPr
 
   const applyTemplate = (tpl: CommTemplate) => {
     setMessage(fillTemplate(tpl.content, thread));
-    if (!isInternal && tpl.channels.length > 0) {
-      // prefer first channel of template if it's a valid external channel
-      const ch = tpl.channels.find(c => c !== 'internal') as CommChannel | undefined;
-      if (ch) setSelectedChannel(ch);
-    }
     setShowTemplates(false);
     setTimeout(() => textareaRef.current?.focus(), 50);
   };
@@ -70,11 +69,11 @@ export function MessageComposer({ thread, templates, onSend }: MessageComposerPr
       {showTemplates && (
         <div className="border-b border-gray-200 p-3 bg-gray-50 max-h-52 overflow-y-auto">
           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
-            Templates
+            Templates for {activeTab}
           </p>
           <div className="flex flex-col gap-1.5">
             {applicableTemplates.length === 0 ? (
-              <p className="text-xs text-gray-400 py-2 text-center">No templates for this party type</p>
+              <p className="text-xs text-gray-400 py-2 text-center">No templates for this channel</p>
             ) : (
               applicableTemplates.map(tpl => (
                 <button
@@ -87,12 +86,6 @@ export function MessageComposer({ thread, templates, onSend }: MessageComposerPr
                       <p className="text-xs font-bold text-gray-800 group-hover:text-indigo-700">{tpl.name}</p>
                       <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">{tpl.content}</p>
                     </div>
-                    <div className="flex gap-1 shrink-0 mt-0.5">
-                      {tpl.channels.filter(c => c !== 'internal').map(c => {
-                        const cfg = CHANNEL_CONFIG.find(x => x.id === c);
-                        return cfg ? <cfg.Icon key={c} className={`w-3.5 h-3.5 ${cfg.color.split(' ')[0]}`} /> : null;
-                      })}
-                    </div>
                   </div>
                 </button>
               ))
@@ -102,31 +95,12 @@ export function MessageComposer({ thread, templates, onSend }: MessageComposerPr
       )}
 
       <div className="p-4 flex flex-col gap-3">
-        {/* Top bar: channel selector + template toggle */}
+        {/* Top bar: channel label + template toggle */}
         <div className="flex items-center justify-between">
-          {/* Channel selector */}
           {!isInternal ? (
-            <div className="flex bg-gray-100 p-0.5 rounded-lg gap-0.5">
-              {CHANNEL_CONFIG.map(({ id, label, Icon }) => (
-                <button
-                  key={id}
-                  onClick={() => setSelectedChannel(id)}
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-[11px] font-bold transition-all ${
-                    selectedChannel === id
-                      ? 'bg-white shadow-sm text-gray-900'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  <Icon className={`w-3.5 h-3.5 ${
-                    selectedChannel === id
-                      ? id === 'whatsapp' ? 'text-emerald-500'
-                        : id === 'sms' ? 'text-sky-500'
-                        : 'text-indigo-500'
-                      : ''
-                  }`} />
-                  {label}
-                </button>
-              ))}
+            <div className="flex items-center gap-1.5 text-xs font-bold text-gray-600 px-2">
+              {activeTab === 'whatsapp' && <><MessageCircle className="w-3.5 h-3.5 text-emerald-500" /> WhatsApp message</>}
+              {activeTab === 'email' && <><Mail className="w-3.5 h-3.5 text-indigo-500" /> Email reply (claims@zoop.one)</>}
             </div>
           ) : (
             <div className="flex items-center gap-2 text-xs text-gray-500">
@@ -161,11 +135,7 @@ export function MessageComposer({ thread, templates, onSend }: MessageComposerPr
               placeholder={
                 isInternal
                   ? 'Add an internal note...'
-                  : `Message ${thread.party.name} via ${
-                      selectedChannel === 'whatsapp' ? 'WhatsApp'
-                      : selectedChannel === 'sms' ? 'SMS'
-                      : 'Email'
-                    }...`
+                  : `Message ${thread.party.name}...`
               }
               rows={1}
               className="w-full pl-4 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm

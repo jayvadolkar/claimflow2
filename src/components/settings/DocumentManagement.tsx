@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Search, Plus, Edit2, Trash2, X, Save, Eye, EyeOff, 
-  FileText, Check, AlertCircle, Shield, Car, User, 
+import {
+  Search, Plus, Edit2, Trash2, X, Save, Eye, EyeOff,
+  FileText, Check, AlertCircle, Shield, Car, User,
   Briefcase, DollarSign, FileWarning, MoreHorizontal, Copy,
   UploadCloud, Settings, ListChecks, Workflow, LayoutTemplate,
   Loader2
@@ -30,7 +30,7 @@ export function DocumentManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [documents, setDocuments] = useState<DocumentDef[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const [editingDoc, setEditingDoc] = useState<DocumentDef | null>(null);
   const [activeTab, setActiveTab] = useState<'basic' | 'upload' | 'permissions' | 'fields'>('basic');
   const [showPreview, setShowPreview] = useState(false);
@@ -80,8 +80,8 @@ export function DocumentManagement() {
     }
   };
 
-  const filteredDocs = documents.filter(doc => 
-    doc.category === activeCategory && 
+  const filteredDocs = documents.filter(doc =>
+    doc.category === activeCategory &&
     doc.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -167,191 +167,189 @@ export function DocumentManagement() {
       ) : (
         <div className="flex-1 flex overflow-hidden">
           {/* Left Panel: Categories */}
-        <div className="w-64 border-r border-gray-200 bg-gray-50 flex flex-col shrink-0">
-          <div className="p-4 border-b border-gray-200">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input 
-                type="text"
-                placeholder="Search Documents"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
-              />
+          <div className="w-64 border-r border-gray-200 bg-gray-50 flex flex-col shrink-0">
+            <div className="p-4 border-b border-gray-200">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search Documents"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
+                />
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3 space-y-1">
+              {CATEGORIES.map(cat => {
+                const count = documents.filter(d => d.category === cat.id).length;
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => setActiveCategory(cat.id)}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${activeCategory === cat.id
+                        ? 'bg-indigo-50 text-indigo-700'
+                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <cat.icon className={`w-4 h-4 ${activeCategory === cat.id ? 'text-indigo-600' : 'text-gray-400'}`} />
+                      {cat.id}
+                    </div>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${activeCategory === cat.id ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500'
+                      }`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto p-3 space-y-1">
-            {CATEGORIES.map(cat => {
-              const count = documents.filter(d => d.category === cat.id).length;
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveCategory(cat.id)}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    activeCategory === cat.id 
-                      ? 'bg-indigo-50 text-indigo-700' 
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <cat.icon className={`w-4 h-4 ${activeCategory === cat.id ? 'text-indigo-600' : 'text-gray-400'}`} />
-                    {cat.id}
-                  </div>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    activeCategory === cat.id ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500'
-                  }`}>
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
 
-        {/* Center Panel: Document List */}
-        <div className="flex-1 flex flex-col min-w-0 bg-white">
-          <div className="h-16 border-b border-gray-200 px-6 flex items-center justify-between shrink-0">
-            <div>
-              <h2 className="text-lg font-bold text-gray-900">{activeCategory} Documents</h2>
-              <p className="text-sm text-gray-500">Manage documents for this category</p>
+          {/* Center Panel: Document List*/}
+          <div className="flex-1 flex flex-col min-w-0 bg-white">
+            <div className="h-16 border-b border-gray-200 px-6 flex items-center justify-between shrink-0">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">{activeCategory} Documents</h2>
+                <p className="text-sm text-gray-500">Manage documents for this category</p>
+              </div>
+              <button
+                onClick={handleCreate}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                Create Document
+              </button>
             </div>
-            <button 
-              onClick={handleCreate}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"
-            >
-              <Plus className="w-4 h-4" />
-              Create Document
-            </button>
-          </div>
-          
-          <div className="flex-1 overflow-auto p-6">
-            <div className="border border-gray-200 rounded-xl overflow-hidden">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 font-medium">
-                  <tr>
-                    <th className="px-4 py-3">Document Name</th>
-                    <th className="px-4 py-3">Description</th>
-                    <th className="px-4 py-3 text-center">Fields Enabled</th>
-                    <th className="px-4 py-3 text-center">Required</th>
-                    <th className="px-4 py-3">Workflow Stage</th>
-                    <th className="px-4 py-3">Applicable Cases</th>
-                    <th className="px-4 py-3 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {filteredDocs.length === 0 ? (
+
+            <div className="flex-1 overflow-auto p-6">
+              <div className="border border-gray-200 rounded-xl overflow-hidden">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 font-medium">
                     <tr>
-                      <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                        No documents found in this category.
-                      </td>
+                      <th className="px-4 py-3">Document Name</th>
+                      <th className="px-4 py-3">Description</th>
+                      <th className="px-4 py-3 text-center">Fields Enabled</th>
+                      <th className="px-4 py-3 text-center">Required</th>
+                      <th className="px-4 py-3">Workflow Stage</th>
+                      <th className="px-4 py-3">Applicable Cases</th>
+                      <th className="px-4 py-3 text-right">Actions</th>
                     </tr>
-                  ) : (
-                    filteredDocs.map(doc => (
-                      <tr key={doc.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-4 py-3">
-                          <div className="font-medium text-gray-900 flex items-center gap-2">
-                            {doc.name}
-                            {doc.isSystem && (
-                              <span className="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px] font-bold uppercase tracking-wider">System</span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-gray-500">{doc.description}</td>
-                        <td className="px-4 py-3 text-center">
-                          {doc.fields.length > 0 ? (
-                            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-50 text-emerald-600">
-                              <Check className="w-3.5 h-3.5" />
-                            </span>
-                          ) : (
-                            <span className="text-gray-400">-</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          {doc.required ? (
-                            <span className="inline-flex px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-medium">Yes</span>
-                          ) : (
-                            <span className="inline-flex px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-xs font-medium">No</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="inline-flex px-2 py-1 rounded-md bg-blue-50 text-blue-700 text-xs font-medium whitespace-nowrap">
-                            {doc.workflowStage}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex flex-wrap gap-1">
-                            {doc.applicableCases && doc.applicableCases.includes('Repair') && doc.applicableCases.includes('Theft') && doc.applicableCases.includes('Total Loss') ? (
-                              <span className="text-xs text-gray-600">All Cases</span>
-                            ) : (
-                              doc.applicableCases?.map(c => (
-                                <span key={c} className="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded text-xs">{c}</span>
-                              ))
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <div className="relative flex items-center justify-end">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (openMenu?.id === doc.id) {
-                                  setOpenMenu(null);
-                                } else {
-                                  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                                  setOpenMenu({ id: doc.id, top: rect.bottom + 4, right: window.innerWidth - rect.right });
-                                }
-                              }}
-                              className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
-                              title="Actions"
-                            >
-                              <MoreHorizontal className="w-4 h-4" />
-                            </button>
-
-                            {openMenu?.id === doc.id && (
-                              <>
-                                {/* Backdrop */}
-                                <div className="fixed inset-0 z-10" onClick={() => setOpenMenu(null)} />
-                                <div
-                                  className="fixed z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-44 py-1 animate-in fade-in zoom-in-95 duration-100"
-                                  style={{ top: openMenu.top, right: openMenu.right }}
-                                >
-                                  <button
-                                    onClick={() => { handleEdit(doc); setOpenMenu(null); }}
-                                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                                  >
-                                    <Edit2 className="w-4 h-4 text-gray-400" /> Edit
-                                  </button>
-                                  <button
-                                    onClick={() => { handleDuplicate(doc); setOpenMenu(null); }}
-                                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                                  >
-                                    <Copy className="w-4 h-4 text-gray-400" /> Duplicate
-                                  </button>
-                                  {!doc.isSystem && (
-                                    <>
-                                      <div className="mx-3 my-1 border-t border-gray-100" />
-                                      <button
-                                        onClick={() => { handleDelete(doc.id); setOpenMenu(null); }}
-                                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                                      >
-                                        <Trash2 className="w-4 h-4" /> Delete
-                                      </button>
-                                    </>
-                                  )}
-                                </div>
-                              </>
-                            )}
-                          </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {filteredDocs.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                          No documents found in this category.
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      filteredDocs.map(doc => (
+                        <tr key={doc.id} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="px-4 py-3">
+                            <div className="font-medium text-gray-900 flex items-center gap-2">
+                              {doc.name}
+                              {doc.isSystem && (
+                                <span className="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px] font-bold uppercase tracking-wider">System</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-gray-500">{doc.description}</td>
+                          <td className="px-4 py-3 text-center">
+                            {doc.fields.length > 0 ? (
+                              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-50 text-emerald-600">
+                                <Check className="w-3.5 h-3.5" />
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            {doc.required ? (
+                              <span className="inline-flex px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-medium">Yes</span>
+                            ) : (
+                              <span className="inline-flex px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-xs font-medium">No</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="inline-flex px-2 py-1 rounded-md bg-blue-50 text-blue-700 text-xs font-medium whitespace-nowrap">
+                              {doc.workflowStage}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex flex-wrap gap-1">
+                              {doc.applicableCases && doc.applicableCases.includes('Repair') && doc.applicableCases.includes('Theft') && doc.applicableCases.includes('Total Loss') ? (
+                                <span className="text-xs text-gray-600">All Cases</span>
+                              ) : (
+                                doc.applicableCases?.map(c => (
+                                  <span key={c} className="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded text-xs">{c}</span>
+                                ))
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="relative flex items-center justify-end">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (openMenu?.id === doc.id) {
+                                    setOpenMenu(null);
+                                  } else {
+                                    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                                    setOpenMenu({ id: doc.id, top: rect.bottom + 4, right: window.innerWidth - rect.right });
+                                  }
+                                }}
+                                className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                                title="Actions"
+                              >
+                                <MoreHorizontal className="w-4 h-4" />
+                              </button>
+
+                              {openMenu?.id === doc.id && (
+                                <>
+                                  {/* Backdrop */}
+                                  <div className="fixed inset-0 z-10" onClick={() => setOpenMenu(null)} />
+                                  <div
+                                    className="fixed z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-44 py-1 animate-in fade-in zoom-in-95 duration-100"
+                                    style={{ top: openMenu.top, right: openMenu.right }}
+                                  >
+                                    <button
+                                      onClick={() => { handleEdit(doc); setOpenMenu(null); }}
+                                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                    >
+                                      <Edit2 className="w-4 h-4 text-gray-400" /> Edit
+                                    </button>
+                                    <button
+                                      onClick={() => { handleDuplicate(doc); setOpenMenu(null); }}
+                                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                    >
+                                      <Copy className="w-4 h-4 text-gray-400" /> Duplicate
+                                    </button>
+                                    {!doc.isSystem && (
+                                      <>
+                                        <div className="mx-3 my-1 border-t border-gray-100" />
+                                        <button
+                                          onClick={() => { handleDelete(doc.id); setOpenMenu(null); }}
+                                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                                        >
+                                          <Trash2 className="w-4 h-4" /> Delete
+                                        </button>
+                                      </>
+                                    )}
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
-      </div>
       )}
 
       {/* Right Panel: Configuration Modal (Sliding Overlay) */}
@@ -367,16 +365,15 @@ export function DocumentManagement() {
               )}
             </div>
             <div className="flex items-center gap-2">
-              <button 
+              <button
                 onClick={() => setShowPreview(!showPreview)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  showPreview ? 'bg-indigo-100 text-indigo-700' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
-                }`}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${showPreview ? 'bg-indigo-100 text-indigo-700' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                  }`}
               >
                 {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 {showPreview ? 'Hide Preview' : 'Preview'}
               </button>
-              <button 
+              <button
                 onClick={() => setEditingDoc(null)}
                 className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               >
@@ -401,7 +398,7 @@ export function DocumentManagement() {
                         {editingDoc.allowedTypes.join(', ')} (Max. {editingDoc.maxSizeMB}MB)
                       </p>
                     </div>
-                    
+
                     {editingDoc.fields.length > 0 && (
                       <div className="space-y-3 pt-2 border-t border-gray-100">
                         {editingDoc.fields.map(field => (
@@ -414,7 +411,7 @@ export function DocumentManagement() {
                                 <option>{field.placeholder || 'Select option'}</option>
                               </select>
                             ) : (
-                              <input 
+                              <input
                                 type={field.type === 'date' ? 'date' : 'text'}
                                 placeholder={field.placeholder}
                                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-500"
@@ -430,7 +427,7 @@ export function DocumentManagement() {
                         ))}
                       </div>
                     )}
-                    
+
                     <button className="w-full py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium opacity-50 cursor-not-allowed">
                       Submit Document
                     </button>
@@ -450,11 +447,10 @@ export function DocumentManagement() {
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id as any)}
-                      className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
-                        activeTab === tab.id 
-                          ? 'border-indigo-600 text-indigo-600' 
+                      className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${activeTab === tab.id
+                          ? 'border-indigo-600 text-indigo-600'
                           : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
+                        }`}
                     >
                       <tab.icon className="w-4 h-4" />
                       {tab.label}
@@ -468,28 +464,28 @@ export function DocumentManagement() {
                     <div className="space-y-5">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Document Name</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           value={editingDoc.name}
-                          onChange={(e) => setEditingDoc({...editingDoc, name: e.target.value})}
+                          onChange={(e) => setEditingDoc({ ...editingDoc, name: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Document Code</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           value={editingDoc.code}
-                          onChange={(e) => setEditingDoc({...editingDoc, code: e.target.value})}
+                          onChange={(e) => setEditingDoc({ ...editingDoc, code: e.target.value })}
                           disabled={editingDoc.isSystem}
                           className={`w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none ${editingDoc.isSystem ? 'bg-gray-100 text-gray-500' : 'focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500'}`}
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                        <select 
+                        <select
                           value={editingDoc.category}
-                          onChange={(e) => setEditingDoc({...editingDoc, category: e.target.value as DocCategory})}
+                          onChange={(e) => setEditingDoc({ ...editingDoc, category: e.target.value as DocCategory })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
                         >
                           {CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.id}</option>)}
@@ -497,9 +493,9 @@ export function DocumentManagement() {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                        <textarea 
+                        <textarea
                           value={editingDoc.description}
-                          onChange={(e) => setEditingDoc({...editingDoc, description: e.target.value})}
+                          onChange={(e) => setEditingDoc({ ...editingDoc, description: e.target.value })}
                           rows={3}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none resize-none"
                         />
@@ -523,14 +519,14 @@ export function DocumentManagement() {
                         <div className="flex flex-wrap gap-2">
                           {['PDF', 'JPG', 'PNG', 'DOCX', 'XLSX'].map(type => (
                             <label key={type} className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
-                              <input 
-                                type="checkbox" 
+                              <input
+                                type="checkbox"
                                 checked={editingDoc.allowedTypes.includes(type)}
                                 onChange={(e) => {
-                                  const newTypes = e.target.checked 
+                                  const newTypes = e.target.checked
                                     ? [...editingDoc.allowedTypes, type]
                                     : editingDoc.allowedTypes.filter(t => t !== type);
-                                  setEditingDoc({...editingDoc, allowedTypes: newTypes});
+                                  setEditingDoc({ ...editingDoc, allowedTypes: newTypes });
                                 }}
                                 className="rounded text-indigo-600 focus:ring-indigo-500"
                               />
@@ -545,10 +541,10 @@ export function DocumentManagement() {
                             <p className="text-sm font-medium text-gray-900">Multiple Upload Allowed</p>
                             <p className="text-xs text-gray-500 mt-0.5">Allow users to upload multiple files for this document</p>
                           </div>
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             checked={editingDoc.multipleUpload}
-                            onChange={(e) => setEditingDoc({...editingDoc, multipleUpload: e.target.checked})}
+                            onChange={(e) => setEditingDoc({ ...editingDoc, multipleUpload: e.target.checked })}
                             className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
                           />
                         </label>
@@ -557,10 +553,10 @@ export function DocumentManagement() {
                             <p className="text-sm font-medium text-gray-900">Versioning Enabled</p>
                             <p className="text-xs text-gray-500 mt-0.5">Keep history of previous uploads when updated</p>
                           </div>
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             checked={editingDoc.versioning}
-                            onChange={(e) => setEditingDoc({...editingDoc, versioning: e.target.checked})}
+                            onChange={(e) => setEditingDoc({ ...editingDoc, versioning: e.target.checked })}
                             className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
                           />
                         </label>
@@ -594,7 +590,7 @@ export function DocumentManagement() {
                           ].map(action => {
                             const perms = editingDoc.permissions ?? { upload: [], verify: [], reject: [], view: [], create: [], delete: [], override: [] };
                             const assignedIds = perms[action.key as keyof typeof perms] as string[];
-                            
+
                             // Map IDs to objects, preserving their type
                             const assignedItems = assignedIds.map(id => {
                               const r = rolesData.find(x => x.id === id);
@@ -612,15 +608,14 @@ export function DocumentManagement() {
                                 </div>
                                 <div className="flex flex-wrap items-center gap-2 flex-1 sm:justify-end">
                                   {assignedItems.map(item => (
-                                    <div key={item.id} className={`flex items-center gap-1.5 px-3 py-1.5 border shadow-sm rounded-lg ${
-                                      item.type === 'role' ? 'bg-indigo-50/50 border-indigo-100' : 'bg-white border-gray-200'
-                                    }`}>
+                                    <div key={item.id} className={`flex items-center gap-1.5 px-3 py-1.5 border shadow-sm rounded-lg ${item.type === 'role' ? 'bg-indigo-50/50 border-indigo-100' : 'bg-white border-gray-200'
+                                      }`}>
                                       {item.type === 'role' ? <Shield className="w-3.5 h-3.5 text-indigo-500" /> : <User className="w-3.5 h-3.5 text-gray-500" />}
                                       <span className="text-xs font-semibold text-gray-700">
                                         {item.name}
                                         {item.type === 'role' && <span className="ml-1.5 text-[9px] uppercase font-bold text-indigo-400 tracking-wider">Role</span>}
                                       </span>
-                                      <button 
+                                      <button
                                         onClick={() => {
                                           const updated = assignedIds.filter(id => id !== item.id);
                                           setEditingDoc({ ...editingDoc, permissions: { ...perms, [action.key]: updated } });
@@ -631,7 +626,7 @@ export function DocumentManagement() {
                                       </button>
                                     </div>
                                   ))}
-                                  
+
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -670,11 +665,11 @@ export function DocumentManagement() {
                         <label className="flex items-center gap-2">
                           <span className="text-sm font-medium text-gray-700">Enable Fields</span>
                           <div className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer ${editingDoc.hasFields ? 'bg-indigo-600' : 'bg-gray-300'}`}>
-                            <input 
-                              type="checkbox" 
+                            <input
+                              type="checkbox"
                               className="sr-only"
                               checked={editingDoc.hasFields}
-                              onChange={(e) => setEditingDoc({...editingDoc, hasFields: e.target.checked})}
+                              onChange={(e) => setEditingDoc({ ...editingDoc, hasFields: e.target.checked })}
                             />
                             <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${editingDoc.hasFields ? 'translate-x-5' : 'translate-x-0'}`} />
                           </div>
@@ -687,37 +682,37 @@ export function DocumentManagement() {
                             <div key={field.id} className="border border-gray-200 rounded-xl p-4 bg-gray-50/50 space-y-4">
                               <div className="flex items-center justify-between">
                                 <h4 className="text-sm font-bold text-gray-900">Field {index + 1}</h4>
-                                <button 
+                                <button
                                   onClick={() => {
                                     const newFields = [...editingDoc.fields];
                                     newFields.splice(index, 1);
-                                    setEditingDoc({...editingDoc, fields: newFields});
+                                    setEditingDoc({ ...editingDoc, fields: newFields });
                                   }}
                                   className="text-gray-400 hover:text-red-600 transition-colors"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
                               </div>
-                              
+
                               <div className="grid grid-cols-2 gap-4">
                                 <div>
                                   <label className="block text-xs font-medium text-gray-700 mb-1">Field Name</label>
-                                  <input 
-                                    type="text" 
+                                  <input
+                                    type="text"
                                     value={field.label}
                                     onChange={(e) => {
                                       const newFields = [...editingDoc.fields];
                                       newFields[index].label = e.target.value;
                                       newFields[index].code = `${editingDoc.code}_${e.target.value.replace(/\s+/g, '_')}`.toLowerCase();
-                                      setEditingDoc({...editingDoc, fields: newFields});
+                                      setEditingDoc({ ...editingDoc, fields: newFields });
                                     }}
                                     className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-indigo-500"
                                   />
                                 </div>
                                 <div>
                                   <label className="block text-xs font-medium text-gray-700 mb-1">Field Code</label>
-                                  <input 
-                                    type="text" 
+                                  <input
+                                    type="text"
                                     value={field.code}
                                     disabled
                                     className="w-full px-3 py-1.5 border border-gray-200 bg-gray-100 rounded-lg text-sm text-gray-500 outline-none font-mono text-[10px]"
@@ -725,12 +720,12 @@ export function DocumentManagement() {
                                 </div>
                                 <div>
                                   <label className="block text-xs font-medium text-gray-700 mb-1">Type</label>
-                                  <select 
+                                  <select
                                     value={field.type}
                                     onChange={(e) => {
                                       const newFields = [...editingDoc.fields];
                                       newFields[index].type = e.target.value as any;
-                                      setEditingDoc({...editingDoc, fields: newFields});
+                                      setEditingDoc({ ...editingDoc, fields: newFields });
                                     }}
                                     className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-indigo-500"
                                   >
@@ -750,7 +745,7 @@ export function DocumentManagement() {
                                       onChange={(e) => {
                                         const newFields = [...editingDoc.fields];
                                         newFields[index].options = e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean);
-                                        setEditingDoc({...editingDoc, fields: newFields});
+                                        setEditingDoc({ ...editingDoc, fields: newFields });
                                       }}
                                       placeholder="Option A, Option B, Option C"
                                       className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-indigo-500"
@@ -766,7 +761,7 @@ export function DocumentManagement() {
                                       onChange={(e) => {
                                         const newFields = [...editingDoc.fields];
                                         newFields[index].placeholder = e.target.value;
-                                        setEditingDoc({...editingDoc, fields: newFields});
+                                        setEditingDoc({ ...editingDoc, fields: newFields });
                                       }}
                                       className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-indigo-500"
                                     />
@@ -781,7 +776,7 @@ export function DocumentManagement() {
                                       onChange={(e) => {
                                         const newFields = [...editingDoc.fields];
                                         newFields[index].validationRule = e.target.value;
-                                        setEditingDoc({...editingDoc, fields: newFields});
+                                        setEditingDoc({ ...editingDoc, fields: newFields });
                                       }}
                                       placeholder="e.g. ^[0-9]{12}$"
                                       className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-indigo-500 font-mono text-xs"
@@ -806,7 +801,7 @@ export function DocumentManagement() {
                                           ...cols,
                                           { id: `col-${Date.now()}`, label: 'New Column', code: `${editingDoc.code}_col_${cols.length + 1}`.toLowerCase(), type: 'text' as const, required: false, placeholder: '', validationRule: '', isMasked: false, showInReports: true, isEditable: true, options: [] }
                                         ];
-                                        setEditingDoc({...editingDoc, fields: newFields});
+                                        setEditingDoc({ ...editingDoc, fields: newFields });
                                       }}
                                       className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 bg-white border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-50 transition-colors shadow-sm"
                                     >
@@ -829,7 +824,7 @@ export function DocumentManagement() {
                                               onClick={() => {
                                                 const newFields = [...editingDoc.fields];
                                                 newFields[index].columns!.splice(colIdx, 1);
-                                                setEditingDoc({...editingDoc, fields: newFields});
+                                                setEditingDoc({ ...editingDoc, fields: newFields });
                                               }}
                                               className="text-gray-400 hover:text-red-600 transition-colors"
                                             >
@@ -848,7 +843,7 @@ export function DocumentManagement() {
                                                   const newFields = [...editingDoc.fields];
                                                   newFields[index].columns![colIdx].label = e.target.value;
                                                   newFields[index].columns![colIdx].code = `${editingDoc.code}_${e.target.value.replace(/\s+/g, '_')}`.toLowerCase();
-                                                  setEditingDoc({...editingDoc, fields: newFields});
+                                                  setEditingDoc({ ...editingDoc, fields: newFields });
                                                 }}
                                                 className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-indigo-500"
                                               />
@@ -869,7 +864,7 @@ export function DocumentManagement() {
                                                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                                                   const newFields = [...editingDoc.fields];
                                                   newFields[index].columns![colIdx].type = e.target.value as any;
-                                                  setEditingDoc({...editingDoc, fields: newFields});
+                                                  setEditingDoc({ ...editingDoc, fields: newFields });
                                                 }}
                                                 className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-indigo-500"
                                               >
@@ -887,7 +882,7 @@ export function DocumentManagement() {
                                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                                   const newFields = [...editingDoc.fields];
                                                   newFields[index].columns![colIdx].placeholder = e.target.value;
-                                                  setEditingDoc({...editingDoc, fields: newFields});
+                                                  setEditingDoc({ ...editingDoc, fields: newFields });
                                                 }}
                                                 className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-indigo-500"
                                               />
@@ -900,7 +895,7 @@ export function DocumentManagement() {
                                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                                   const newFields = [...editingDoc.fields];
                                                   newFields[index].columns![colIdx].validationRule = e.target.value;
-                                                  setEditingDoc({...editingDoc, fields: newFields});
+                                                  setEditingDoc({ ...editingDoc, fields: newFields });
                                                 }}
                                                 placeholder="e.g. ^[0-9]+$"
                                                 className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-indigo-500 font-mono text-xs"
@@ -918,7 +913,7 @@ export function DocumentManagement() {
                                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                                   const newFields = [...editingDoc.fields];
                                                   newFields[index].columns![colIdx].options = e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean);
-                                                  setEditingDoc({...editingDoc, fields: newFields});
+                                                  setEditingDoc({ ...editingDoc, fields: newFields });
                                                 }}
                                                 placeholder="Option A, Option B, Option C"
                                                 className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-indigo-500"
@@ -940,7 +935,7 @@ export function DocumentManagement() {
                                                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                                     const newFields = [...editingDoc.fields];
                                                     (newFields[index].columns![colIdx] as any)[key] = e.target.checked;
-                                                    setEditingDoc({...editingDoc, fields: newFields});
+                                                    setEditingDoc({ ...editingDoc, fields: newFields });
                                                   }}
                                                   className="rounded text-indigo-600 focus:ring-indigo-500"
                                                 />
@@ -989,39 +984,39 @@ export function DocumentManagement() {
 
                               <div className="flex flex-wrap gap-4 pt-3 border-t border-gray-200">
                                 <label className="flex items-center gap-2 cursor-pointer">
-                                  <input 
-                                    type="checkbox" 
+                                  <input
+                                    type="checkbox"
                                     checked={field.required}
                                     onChange={(e) => {
                                       const newFields = [...editingDoc.fields];
                                       newFields[index].required = e.target.checked;
-                                      setEditingDoc({...editingDoc, fields: newFields});
+                                      setEditingDoc({ ...editingDoc, fields: newFields });
                                     }}
                                     className="rounded text-indigo-600 focus:ring-indigo-500"
                                   />
                                   <span className="text-xs font-medium text-gray-700">Required</span>
                                 </label>
                                 <label className="flex items-center gap-2 cursor-pointer">
-                                  <input 
-                                    type="checkbox" 
+                                  <input
+                                    type="checkbox"
                                     checked={field.isMasked}
                                     onChange={(e) => {
                                       const newFields = [...editingDoc.fields];
                                       newFields[index].isMasked = e.target.checked;
-                                      setEditingDoc({...editingDoc, fields: newFields});
+                                      setEditingDoc({ ...editingDoc, fields: newFields });
                                     }}
                                     className="rounded text-indigo-600 focus:ring-indigo-500"
                                   />
                                   <span className="text-xs font-medium text-gray-700">Mask Value</span>
                                 </label>
                                 <label className="flex items-center gap-2 cursor-pointer">
-                                  <input 
-                                    type="checkbox" 
+                                  <input
+                                    type="checkbox"
                                     checked={field.showInReports}
                                     onChange={(e) => {
                                       const newFields = [...editingDoc.fields];
                                       newFields[index].showInReports = e.target.checked;
-                                      setEditingDoc({...editingDoc, fields: newFields});
+                                      setEditingDoc({ ...editingDoc, fields: newFields });
                                     }}
                                     className="rounded text-indigo-600 focus:ring-indigo-500"
                                   />
@@ -1031,7 +1026,7 @@ export function DocumentManagement() {
                             </div>
                           ))}
 
-                          <button 
+                          <button
                             onClick={() => {
                               setEditingDoc({
                                 ...editingDoc,
@@ -1056,13 +1051,13 @@ export function DocumentManagement() {
           </div>
 
           <div className="p-4 border-t border-gray-200 bg-gray-50 shrink-0 flex items-center justify-end gap-3">
-            <button 
+            <button
               onClick={() => setEditingDoc(null)}
               className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
             >
               Cancel
             </button>
-            <button 
+            <button
               onClick={handleSave}
               className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"
             >
@@ -1076,11 +1071,11 @@ export function DocumentManagement() {
       {assignPopover && editingDoc && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setAssignPopover(null)} />
-          <div 
+          <div
             className="fixed z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-72 flex flex-col overflow-hidden animate-in fade-in py-2"
-            style={{ 
-              top: Math.min(assignPopover.top, window.innerHeight - 300), 
-              left: Math.min(assignPopover.left, window.innerWidth - 300) 
+            style={{
+              top: Math.min(assignPopover.top, window.innerHeight - 300),
+              left: Math.min(assignPopover.left, window.innerWidth - 300)
             }}
           >
             <div className="px-3 pb-2 border-b border-gray-100">
@@ -1096,16 +1091,16 @@ export function DocumentManagement() {
                 />
               </div>
             </div>
-            
+
             <div className="max-h-60 overflow-y-auto px-1 py-1 hide-scrollbar">
               {(() => {
                 const perms = editingDoc.permissions ?? { upload: [], verify: [], reject: [], view: [], create: [], delete: [] };
                 const assignedIds = perms[assignPopover.actionKey as keyof typeof perms] as string[];
-                
-                const filteredRoles = rolesData.filter(r => 
+
+                const filteredRoles = rolesData.filter(r =>
                   !assignedIds.includes(r.id) && r.name.toLowerCase().includes(assignSearch.toLowerCase())
                 );
-                const filteredUsers = users.filter(u => 
+                const filteredUsers = users.filter(u =>
                   !assignedIds.includes(u.id) && (u.name.toLowerCase().includes(assignSearch.toLowerCase()) || u.email.toLowerCase().includes(assignSearch.toLowerCase()))
                 );
 

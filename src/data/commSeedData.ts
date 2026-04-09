@@ -10,7 +10,7 @@
  * Times are real ISO timestamps spaced realistically throughout a single day.
  */
 
-import { CommThread, CommMessage, CommChannel, PartyRole, Survey } from '../types';
+import { CommThread, CommMessage, CommChannel, PartyRole, Survey, EmailTicket } from '../types';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 let _idCounter = 1;
@@ -166,76 +166,18 @@ function garageThread(survey: Survey, base: Date): CommThread {
   const garageName = survey.garageName;
   const garageContact = survey.garageContact || '+91 98001 12345';
   const surveyId = survey.id;
-  const claimNo = survey.claimNo || surveyId;
-  const vehicleNo = survey.vehicle;
 
   const messages: CommMessage[] = [
-    autoEvent(`Survey assigned — ${vehicleNo} at ${garageName}`, base, 1),
-
-    msg('email', 'handler',
-      `Dear ${garageName} Team,\n\nA new survey has been assigned for vehicle ${vehicleNo} (Claim No: ${claimNo}). The vehicle is expected at your workshop for inspection. Please confirm receipt and ensure the vehicle is accessible.\n\nKindly share the detailed repair estimate at the earliest — itemised parts cost, labour charges, and taxes separately.\n\nRegards,\nClaimFlow Survey Team`,
-      base, 3,
-      { status: 'read', templateId: 'tpl-survey-created-garage',
-        attachments: [{ name: 'Survey_Assignment_Letter.pdf', type: 'application/pdf', size: '320 KB' }] }),
-
-    msg('email', 'participant',
-      `Acknowledged. Vehicle is in our workshop. We'll prepare the estimate and share within 24 hours.`,
-      base, 240),
-
-    msg('email', 'handler',
-      `Thank you for confirming. Please also include the chassis number photos in the estimate package if possible.`,
-      base, 245, { status: 'read' }),
-
-    msg('email', 'participant',
-      `Sure, please find the estimate attached. Chassis number photo is included.`,
-      base, 1440,
-      { attachments: [
-        { name: 'Repair_Estimate_v1.xlsx', type: 'application/xlsx', size: '450 KB' },
-        { name: 'Chassis_Number.jpg', type: 'image/jpeg', size: '890 KB' },
-      ]}),
-
-    autoEvent('Repair estimate received from garage', base, 1441),
-
-    msg('email', 'handler',
-      `Received the estimate. We've noticed the labour charges for front bumper replacement are higher than the standard rate. Could you please clarify or revise?`,
-      base, 1500, { status: 'delivered' }),
-
-    msg('email', 'participant',
-      `Understood. We'll revise the estimate and resend.`,
-      base, 1560),
-
-    msg('email', 'participant',
-      `Please find the revised estimate. Labour charges have been adjusted as requested.`,
-      base, 1620,
-      { attachments: [{ name: 'Repair_Estimate_v2_Final.xlsx', type: 'application/xlsx', size: '460 KB' }] }),
-
-    autoEvent('Revised estimate received and accepted', base, 1622),
-
-    msg('email', 'handler',
-      `Thank you. The revised estimate has been reviewed and approved. You may proceed with the repair work. We'll coordinate on the next steps.`,
-      base, 1680, { status: 'read' }),
-
-    msg('whatsapp', 'participant',
-      `Repair work started. Expected to complete in 3-4 days.`,
-      base, 2880),
-
-    msg('whatsapp', 'handler',
-      `Noted. Please share photos of the progress and the final repair work once complete.`,
-      base, 2885, { status: 'read' }),
-
-    msg('whatsapp', 'participant',
-      `Repair complete. Vehicle is ready for final inspection.`,
-      base, 4320,
+    autoEvent(`Survey assigned — ${survey.vehicle} at ${garageName}`, base, 1),
+    msg('whatsapp', 'handler', `Hi ${garageName} Team, vehicle ${survey.vehicle} has been assigned. Please coordinate the estimate.`, base, 3, { status: 'read' }),
+    msg('whatsapp', 'participant', `Repair work started. Expected to complete in 3-4 days.`, base, 2880),
+    msg('whatsapp', 'handler', `Noted. Please share photos of the progress and the final repair work once complete.`, base, 2885, { status: 'read' }),
+    msg('whatsapp', 'participant', `Repair complete. Vehicle is ready for final inspection.`, base, 4320,
       { attachments: [
         { name: 'Repair_Complete_1.jpg', type: 'image/jpeg', size: '1.8 MB' },
         { name: 'Repair_Complete_2.jpg', type: 'image/jpeg', size: '2.1 MB' },
       ]}),
-
     autoEvent('Final repair photos received from garage', base, 4321),
-
-    msg('email', 'handler',
-      `Final inspection completed. Survey report will be submitted to the insurer shortly. Thank you for the cooperation.`,
-      base, 4380, { status: 'read' }),
   ];
 
   return {
@@ -257,47 +199,14 @@ function surveyorThread(survey: Survey, base: Date): CommThread {
 
   const messages: CommMessage[] = [
     autoEvent(`Survey assigned to ${surveyorName}`, base, 5),
-
-    msg('whatsapp', 'handler',
-      `Hi ${surveyorName}, this survey (${surveyId}) has been assigned to you. Vehicle is at ${survey.garageName}. Please coordinate inspection at the earliest and update the survey report.`,
-      base, 6, { status: 'read' }),
-
-    msg('whatsapp', 'participant',
-      `Acknowledged. Will visit the garage today afternoon.`,
-      base, 30),
-
-    msg('whatsapp', 'participant',
-      `Inspection done. Significant damage to front bumper, left fender, and headlight assembly. Photos uploaded.`,
-      base, 210),
-
+    msg('whatsapp', 'handler', `Hi ${surveyorName}, this survey (${surveyId}) has been assigned to you. Vehicle is at ${survey.garageName}. Please coordinate inspection at the earliest and update the survey report.`, base, 6, { status: 'read' }),
+    msg('whatsapp', 'participant', `Acknowledged. Will visit the garage today afternoon.`, base, 30),
+    msg('whatsapp', 'participant', `Inspection done. Significant damage to front bumper, left fender, and headlight assembly. Photos uploaded.`, base, 210),
     autoEvent('Surveyor inspection completed — field photos uploaded', base, 212),
-
-    msg('whatsapp', 'handler',
-      `Good work. Please finalize the assessment report and upload it by EOD.`,
-      base, 215, { status: 'read' }),
-
-    msg('whatsapp', 'participant',
-      `Report is being prepared. Will share by 5 PM.`,
-      base, 220),
-
-    msg('email', 'participant',
-      `Assessment report submitted.`,
-      base, 360,
-      { attachments: [{ name: 'Field_Assessment_Report.pdf', type: 'application/pdf', size: '1.1 MB' }] }),
-
-    autoEvent('Assessment report received from surveyor', base, 361),
-
-    msg('email', 'handler',
-      `Report reviewed. Good documentation. Please also note the odometer reading in your next submission.`,
-      base, 380, { status: 'delivered' }),
-
-    msg('whatsapp', 'participant',
-      `Odometer reading was 42,800 km. I'll update the report.`,
-      base, 395),
-
-    msg('whatsapp', 'handler',
-      `Thanks. Updated report received. Survey closed from our end.`,
-      base, 450, { status: 'read' }),
+    msg('whatsapp', 'handler', `Good work. Please finalize the assessment report and upload it by EOD.`, base, 215, { status: 'read' }),
+    msg('whatsapp', 'participant', `Report is being prepared. Will share by 5 PM.`, base, 220),
+    msg('whatsapp', 'participant', `Odometer reading was 42,800 km. I'll update the report.`, base, 395),
+    msg('whatsapp', 'handler', `Thanks. Updated report received. Survey closed from our end.`, base, 450, { status: 'read' }),
   ];
 
   return {
@@ -312,73 +221,7 @@ function surveyorThread(survey: Survey, base: Date): CommThread {
   };
 }
 
-function insurerThread(survey: Survey, base: Date): CommThread {
-  const insurerName = survey.insurer;
-  const insurerEmail = survey.insurerEmail || `claims@${insurerName.toLowerCase().replace(/\s+/g, '')}.com`;
-  const surveyId = survey.id;
-  const claimNo = survey.claimNo || surveyId;
-
-  const messages: CommMessage[] = [
-    autoEvent(`Survey initiated — notified insurer ${insurerName}`, base, 2),
-
-    msg('email', 'participant',
-      `Please provide an update on claim ${claimNo}. Our records show this was registered 2 days ago.`,
-      base, 1440),
-
-    msg('email', 'handler',
-      `Dear ${insurerName} Claims Team,\n\nThe survey for claim ${claimNo} is in progress. Vehicle inspection has been completed. Repair estimate is under review. We expect to submit the final survey report within 48 hours.\n\nRegards,\nClaimFlow`,
-      base, 1450, { status: 'read' }),
-
-    msg('email', 'participant',
-      `Thank you for the update. Please make sure the report includes photos of all damaged components.`,
-      base, 1500),
-
-    msg('email', 'handler',
-      `Noted. The report will include a comprehensive photo log of all damage — exterior, interior, and mechanical components where applicable.`,
-      base, 1505, { status: 'read' }),
-
-    autoEvent('Survey report finalized — ready for submission', base, 4400),
-
-    msg('email', 'handler',
-      `Dear ${insurerName} Claims Team,\n\nPlease find the completed survey report for claim ${claimNo} attached. The report includes the full damage assessment, repair estimate (approved), and supporting photographs.\n\nKindly process the claim at your earliest convenience.\n\nRegards,\nClaimFlow`,
-      base, 4410,
-      { status: 'read', templateId: 'tpl-share-report',
-        attachments: [
-          { name: `Survey_Report_${claimNo}.pdf`, type: 'application/pdf', size: '2.4 MB' },
-          { name: `Damage_Photos_${claimNo}.zip`, type: 'application/zip', size: '18.6 MB' },
-        ]}),
-
-    msg('email', 'participant',
-      `Report received. We'll review and revert within 2 working days.`,
-      base, 4500),
-
-    msg('email', 'handler',
-      `Thank you. Please let us know if any additional information is required.`,
-      base, 4505, { status: 'read' }),
-
-    msg('email', 'participant',
-      `We have reviewed the report. The claim is approved for settlement. Please share the payee bank details.`,
-      base, 7200),
-
-    autoEvent('Insurer approved claim for settlement', base, 7201),
-
-    msg('email', 'handler',
-      `Excellent. Bank details are being coordinated with the insured. We'll share within 24 hours.`,
-      base, 7210, { status: 'read' }),
-  ];
-
-  return {
-    id: `${surveyId}:insurer`,
-    surveyId,
-    party: { role: 'insurer', name: insurerName, email: insurerEmail },
-    messages,
-    unreadCount: 2,
-    lastMessage: messages[messages.length - 1].content,
-    lastActivityAt: messages[messages.length - 1].timestamp,
-    threadStatus: 'active',
-  };
-}
-
+// Insurer thread moved to EmailTickets
 function internalThread(survey: Survey, base: Date, surveyorName: string): CommThread {
   const surveyId = survey.id;
 
@@ -447,7 +290,6 @@ export function buildSeededThreads(survey: Survey): CommThread[] {
     insuredThread(survey, base),
     garageThread(survey, base),
     internalThread(survey, base, survey.surveyor || 'Surveyor'),
-    insurerThread(survey, base),
   ];
 
   // Include surveyor thread only if surveyor name is set
@@ -456,4 +298,50 @@ export function buildSeededThreads(survey: Survey): CommThread[] {
   }
 
   return threads;
+}
+
+export function buildSeededEmailTickets(survey: Survey): EmailTicket[] {
+  const rawBase = survey.requestDate ? new Date(survey.requestDate) : new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+  const base = isNaN(rawBase.getTime()) ? new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) : rawBase;
+  const claimNo = survey.claimNo || survey.id;
+  const garageEmail = `ops@${survey.garageName.toLowerCase().replace(/\s+/g, '')}.in`;
+  const insurerEmail = survey.insurerEmail || `claims@${survey.insurer.toLowerCase().replace(/\s+/g, '')}.com`;
+
+  return [
+    {
+      id: `${survey.id}:et:1`,
+      surveyId: survey.id,
+      subject: `Repair Estimate Review - ${survey.vehicle}`,
+      participants: [
+        { role: 'garage', name: survey.garageName, email: garageEmail, type: 'to' }
+      ],
+      status: 'closed',
+      unreadCount: 0,
+      updatedAt: ts(base, 4380),
+      messages: [
+        msg('email', 'handler', `Dear ${survey.garageName} Team,\nA new survey has been assigned for vehicle ${survey.vehicle} (Claim No: ${claimNo}). The vehicle is expected at your workshop for inspection.\nKindly share the detailed repair estimate.\nRegards,\nClaimFlow`, base, 3, { subject: `Repair Estimate Review - ${survey.vehicle}`, attachments: [{ name: 'Assignment.pdf', type: 'application/pdf', size: '320 KB' }] }),
+        msg('email', 'participant', `Acknowledged. Vehicle is in our workshop. Estimate attached.`, base, 1440, { senderName: survey.garageName, subject: `Re: Repair Estimate Review - ${survey.vehicle}`, attachments: [{ name: 'Repair_Estimate_v1.xlsx', type: 'application/xlsx', size: '450 KB' }] }),
+        msg('email', 'handler', `Received the estimate. We've noticed the labour charges for front bumper replacement are higher than the standard rate. Could you please clarify or revise?`, base, 1500, { subject: `Re: Repair Estimate Review - ${survey.vehicle}` }),
+        msg('email', 'participant', `Please find the revised estimate. Labour charges have been adjusted.`, base, 1620, { senderName: survey.garageName, subject: `Re: Repair Estimate Review - ${survey.vehicle}`, attachments: [{ name: 'Repair_Estimate_v2_Final.xlsx', type: 'application/xlsx', size: '460 KB' }] }),
+        msg('email', 'handler', `Thank you. The revised estimate is approved. You may proceed.`, base, 1680, { subject: `Re: Repair Estimate Review - ${survey.vehicle}` })
+      ]
+    },
+    {
+      id: `${survey.id}:et:2`,
+      surveyId: survey.id,
+      subject: `Claim Settlement Update - ${claimNo}`,
+      participants: [
+        { role: 'insurer', name: survey.insurer, email: insurerEmail, type: 'to' }
+      ],
+      status: 'open',
+      unreadCount: 1,
+      updatedAt: ts(base, 7200),
+      messages: [
+        msg('email', 'participant', `Please provide an update on claim ${claimNo}. Our records show this was registered 2 days ago.`, base, 1440, { senderName: survey.insurer, subject: `Claim Settlement Update - ${claimNo}` }),
+        msg('email', 'handler', `Dear ${survey.insurer} Claims Team,\nThe survey for claim ${claimNo} is in progress. Vehicle inspection is done.`, base, 1450, { subject: `Re: Claim Settlement Update - ${claimNo}` }),
+        msg('email', 'handler', `Dear ${survey.insurer} Claims Team,\nPlease find the completed survey report for claim ${claimNo} attached.\nKindly process the claim at your earliest convenience.`, base, 4410, { subject: `Re: Claim Settlement Update - ${claimNo}`, attachments: [{ name: `Survey_Report.pdf`, type: 'application/pdf', size: '2.4 MB' }] }),
+        msg('email', 'participant', `We have reviewed the report. The claim is approved for settlement. Please share the payee bank details.`, base, 7200, { senderName: survey.insurer, subject: `Re: Claim Settlement Update - ${claimNo}` })
+      ]
+    }
+  ];
 }

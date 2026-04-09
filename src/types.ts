@@ -197,6 +197,7 @@ export interface CommMessage {
   channel: CommChannel;
   sender: MessageSender;
   senderName?: string;
+  subject?: string;
   content: string;
   timestamp: string;           // ISO 8601
   status?: MessageStatus;
@@ -217,6 +218,24 @@ export interface CommThread {
   lastMessage?: string;
   lastActivityAt?: string;     // ISO timestamp
   threadStatus: 'active' | 'waiting' | 'closed';
+}
+
+export interface EmailTicketParticipant {
+  role: string;
+  name: string;
+  email: string;
+  type: 'to' | 'cc' | 'bcc';
+}
+
+export interface EmailTicket {
+  id: string;
+  surveyId: string;
+  subject: string;
+  participants: EmailTicketParticipant[];
+  status: 'open' | 'pending' | 'closed';
+  messages: CommMessage[];
+  updatedAt: string;
+  unreadCount: number;
 }
 
 // ── Untagged (ghost flow) conversations ──────────────────────────────────────
@@ -302,4 +321,5 @@ export interface Survey {
   /** @deprecated use threads */
   communicationThreads?: any[];
   threads?: CommThread[];
+  emailTickets?: EmailTicket[];
 }
