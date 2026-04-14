@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  FileText, CheckCircle2, AlertCircle, Clock, Send, 
-  Search, Filter, Download, Eye, MoreVertical, 
+import {
+  FileText, CheckCircle2, AlertCircle, Clock, Send,
+  Search, Filter, Download, Eye, MoreVertical,
   User, Building2, ShieldAlert
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Th } from './ui';
 
 interface GlobalDocsViewProps {
   surveys: any[];
@@ -127,12 +128,12 @@ export function GlobalDocsView({ surveys, userRole }: GlobalDocsViewProps) {
             <table className="w-full text-left border-collapse">
               <thead className="sticky top-0 bg-gray-50 shadow-sm z-10 border-b border-gray-200">
                 <tr>
-                  <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Claim Details</th>
-                  <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Vehicle & Customer</th>
-                  <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Handler</th>
-                  <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Last Updated</th>
-                  <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                  <Th>Claim Details</Th>
+                  <Th>Vehicle & Customer</Th>
+                  <Th>Status</Th>
+                  <Th>Handler</Th>
+                  <Th>Last Updated</Th>
+                  <Th className="text-right">Actions</Th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">

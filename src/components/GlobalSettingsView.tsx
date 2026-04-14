@@ -4,6 +4,7 @@ import { ImageManagement } from './settings/ImageManagement';
 import { UserManagement } from './settings/UserManagement';
 import { RolesAndPermissions } from './settings/RolesAndPermissions';
 import { SurveyConfiguration } from './settings/SurveyConfiguration';
+import { EventTriggersView } from './settings/EventTriggersView';
 import { useRBAC } from '../hooks/useRBAC';
 import { 
   Database, 
@@ -35,7 +36,7 @@ interface GlobalSettingsViewProps {
   userRole: string;
 }
 
-type SettingsSection = 'data-masters' | 'rbac' | 'org' | 'evidence' | 'users';
+type SettingsSection = 'data-masters' | 'rbac' | 'org' | 'evidence' | 'users' | 'communications';
 
 export function GlobalSettingsView({ onBack, userRole }: GlobalSettingsViewProps) {
   const { hasPermission } = useRBAC(userRole);
@@ -51,11 +52,12 @@ export function GlobalSettingsView({ onBack, userRole }: GlobalSettingsViewProps
   }, [activeSection]);
 
   const menuItems = [
-    { id: 'org',          label: 'Organization Settings', icon: Building2  },
-    { id: 'rbac',         label: 'Roles & Permissions',   icon: ShieldCheck },
-    { id: 'users',        label: 'User Directory',        icon: Users       },
-    { id: 'evidence',     label: 'Evidence Management',   icon: FileText    },
-    { id: 'data-masters', label: 'Data Masters',          icon: Database    },
+    { id: 'org',            label: 'Organization Settings', icon: Building2  },
+    { id: 'rbac',           label: 'Roles & Permissions',   icon: ShieldCheck },
+    { id: 'users',          label: 'User Directory',        icon: Users       },
+    { id: 'evidence',       label: 'Evidence Management',   icon: FileText    },
+    { id: 'communications', label: 'Communications',        icon: Mail        },
+    { id: 'data-masters',   label: 'Data Masters',          icon: Database    },
   ];
 
   return (
@@ -138,6 +140,8 @@ export function GlobalSettingsView({ onBack, userRole }: GlobalSettingsViewProps
             </div>
           ) : activeSection === 'rbac' ? (
             <RolesAndPermissions />
+          ) : activeSection === 'communications' ? (
+            <CommunicationsRouter />
           ) : (
             <div className="flex-1 overflow-y-auto p-8">
               <div className="max-w-5xl mx-auto">
@@ -184,6 +188,39 @@ function EvidenceManagementRouter() {
         {activeTab === 'docs'   && <div className="h-full p-6"><DocumentManagement /></div>}
         {activeTab === 'images' && <div className="h-full p-6"><ImageManagement /></div>}
         {activeTab === 'config' && <div className="h-full p-6"><SurveyConfiguration /></div>}
+      </div>
+    </div>
+  );
+}
+
+function CommunicationsRouter() {
+  const [activeTab, setActiveTab] = useState<'event-triggers'>('event-triggers');
+
+  const tabs = [
+    { id: 'event-triggers', label: 'Event Triggers' },
+  ] as const;
+
+  return (
+    <div className="flex-1 h-full flex flex-col font-sans">
+      <div className="px-6 py-0 border-b border-gray-200 bg-white flex items-center shrink-0">
+        <div className="flex items-center gap-8">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`py-4 text-sm font-bold border-b-2 transition-colors ${
+                activeTab === tab.id
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex-1 overflow-hidden">
+        {activeTab === 'event-triggers' && <EventTriggersView isSuperAdmin={true} />}
       </div>
     </div>
   );

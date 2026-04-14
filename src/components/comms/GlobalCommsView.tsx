@@ -9,6 +9,7 @@ import {
   Search, MessageSquare, AlertCircle, BarChart2,
   Inbox, Tag, XCircle, Clock, CheckCircle2, ChevronRight, User, Smartphone
 } from 'lucide-react';
+import { Modal, Button } from '../ui';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function buildThreadsFromSurvey(survey: Survey): CommThread[] {
@@ -424,9 +425,7 @@ function UntaggedSubView({ surveys, onUpdateSurvey }: { surveys: Survey[], onUpd
       </div>
 
       {/* Tag modal */}
-      {showTagModal && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+      <Modal open={showTagModal} onClose={() => setShowTagModal(false)} maxWidth="md" panelClassName="overflow-hidden rounded-2xl shadow-2xl">
             <div className="p-5 border-b border-gray-200">
               <h3 className="text-base font-bold text-gray-900">Tag to Survey</h3>
               <p className="text-xs text-gray-500 mt-0.5">Search and select the survey to link this conversation to</p>
@@ -468,16 +467,11 @@ function UntaggedSubView({ surveys, onUpdateSurvey }: { surveys: Survey[], onUpd
               </div>
             </div>
             <div className="p-4 border-t border-gray-200 flex justify-end">
-              <button
-                onClick={() => setShowTagModal(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              >
+              <Button variant="ghost" onClick={() => setShowTagModal(false)}>
                 Cancel
-              </button>
+              </Button>
             </div>
-          </div>
-        </div>
-      )}
+      </Modal>
     </div>
   );
 }

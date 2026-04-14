@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Zap, Settings2, Plus, Mail, Smartphone } from 'lucide-react';
+import { Zap, Plus, Mail, Smartphone } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Button } from './ui';
 
 export function AutomationsView() {
   const [automations, setAutomations] = useState([
@@ -23,9 +24,9 @@ export function AutomationsView() {
             <h1 className="text-2xl font-bold text-gray-900">Global Automations</h1>
             <p className="text-sm text-gray-500 mt-1">Configure system-wide event triggers and communication rules.</p>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
+          <Button variant="primary">
             <Plus className="w-4 h-4" /> Create Rule
-          </button>
+          </Button>
         </div>
       </div>
 

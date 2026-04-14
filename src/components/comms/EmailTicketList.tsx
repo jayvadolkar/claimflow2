@@ -1,6 +1,7 @@
 import React from 'react';
 import { EmailTicket } from '../../types';
 import { Mail, Clock } from 'lucide-react';
+import { Button } from '../ui';
 
 function formatRelativeTime(iso: string) {
   const d = new Date(iso);
@@ -26,12 +27,9 @@ export function EmailTicketList({ tickets, activeTicketId, onSelectTicket, onNew
         <div className="flex flex-col flex-1 items-center justify-center text-gray-400 p-6 text-center">
           <Mail className="w-8 h-8 mb-3 opacity-20" />
           <p className="text-sm mb-4">No email tickets</p>
-          <button 
-             onClick={onNewTicket}
-             className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
-          >
+          <Button variant="primary" onClick={onNewTicket}>
             + New Email
-          </button>
+          </Button>
         </div>
       </div>
     );

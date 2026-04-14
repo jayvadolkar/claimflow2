@@ -4,6 +4,7 @@ import { api } from '../../services/api';
 import { useRBAC } from '../../hooks/useRBAC';
 import { SEED_USERS } from '../../data/users';
 import toast from 'react-hot-toast';
+import { Button } from '../ui';
 
 interface UserData {
   id: string;
@@ -130,9 +131,9 @@ function DirectoryTab({ users, setUsers, roles }: { users: UserData[]; setUsers:
           <h3 className="text-lg font-bold text-gray-900">User Directory</h3>
           <p className="text-sm text-gray-500">All users in the system — profile, role, and login credentials in one place.</p>
         </div>
-        <button onClick={handleAddUser} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 transition-colors">
+        <Button variant="primary" onClick={handleAddUser} className="font-bold">
           <Plus className="w-4 h-4" /> Add User
-        </button>
+        </Button>
       </div>
 
       <div className="relative">

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { 
-  CheckSquare, AlertTriangle, Clock, Send, 
+import {
+  CheckSquare, AlertTriangle, Clock, Send,
   FileText, Camera, CheckCircle2, Eye, RefreshCw, Download, Filter, Search,
   BarChart2, ShieldAlert, Image as ImageIcon, User
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Th, Card } from './ui';
 
 export function GlobalEvidenceView({ surveys }: { surveys: any[] }) {
   const [activeTab, setActiveTab] = useState<'overview' | 'missing_docs' | 'photo_issues' | 'verification'>('overview');
@@ -159,38 +160,38 @@ export function GlobalEvidenceView({ surveys }: { surveys: any[] }) {
             {activeTab === 'overview' && (
               <div className="p-6 space-y-6">
                 <div className="grid grid-cols-4 gap-4">
-                  <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                  <Card padding="md">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="p-2 bg-red-50 text-red-600 rounded-lg"><FileText className="w-5 h-5" /></div>
                       <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Missing Documents</span>
                     </div>
                     <p className="text-3xl font-black text-gray-900">{stats.missingDocs}</p>
-                  </div>
-                  <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                  </Card>
+                  <Card padding="md">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="p-2 bg-amber-50 text-amber-600 rounded-lg"><ImageIcon className="w-5 h-5" /></div>
                       <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Missing Photos</span>
                     </div>
                     <p className="text-3xl font-black text-gray-900">{stats.missingPhotos}</p>
-                  </div>
-                  <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                  </Card>
+                  <Card padding="md">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><Clock className="w-5 h-5" /></div>
                       <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Pending Verification</span>
                     </div>
                     <p className="text-3xl font-black text-gray-900">{stats.pendingVerification}</p>
-                  </div>
-                  <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                  </Card>
+                  <Card padding="md">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg"><CheckCircle2 className="w-5 h-5" /></div>
                       <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Ready for Inspection</span>
                     </div>
                     <p className="text-3xl font-black text-gray-900">{stats.readyForInspection}</p>
-                  </div>
+                  </Card>
                 </div>
 
                 <div className="grid grid-cols-2 gap-6">
-                  <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                  <Card padding="md">
                     <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
                       <BarChart2 className="w-4 h-4 text-indigo-600" />
                       Missing Documents by Insurer
@@ -203,8 +204,8 @@ export function GlobalEvidenceView({ surveys }: { surveys: any[] }) {
                             <span className="text-gray-500">{count}</span>
                           </div>
                           <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-indigo-500" 
+                            <div
+                              className="h-full bg-indigo-500"
                               style={{ width: `${(count / maxInsurerCount) * 100}%` }}
                             />
                           </div>
@@ -214,9 +215,9 @@ export function GlobalEvidenceView({ surveys }: { surveys: any[] }) {
                         <p className="text-xs text-gray-500 text-center py-4">No missing documents</p>
                       )}
                     </div>
-                  </div>
-                  
-                  <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                  </Card>
+
+                  <Card padding="md">
                     <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
                       <User className="w-4 h-4 text-indigo-600" />
                       Missing Documents by Handler
@@ -229,8 +230,8 @@ export function GlobalEvidenceView({ surveys }: { surveys: any[] }) {
                             <span className="text-gray-500">{count}</span>
                           </div>
                           <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-amber-500" 
+                            <div
+                              className="h-full bg-amber-500"
                               style={{ width: `${(count / maxHandlerCount) * 100}%` }}
                             />
                           </div>
@@ -240,7 +241,7 @@ export function GlobalEvidenceView({ surveys }: { surveys: any[] }) {
                         <p className="text-xs text-gray-500 text-center py-4">No missing documents</p>
                       )}
                     </div>
-                  </div>
+                  </Card>
                 </div>
               </div>
             )}
@@ -250,13 +251,13 @@ export function GlobalEvidenceView({ surveys }: { surveys: any[] }) {
               <table className="w-full text-left border-collapse bg-white">
                 <thead className="sticky top-0 bg-gray-50 shadow-sm z-10 border-b border-gray-200">
                   <tr>
-                    <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Claim</th>
-                    <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Vehicle</th>
-                    <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Missing Document</th>
-                    <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Handler</th>
-                    <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Insurer</th>
-                    <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Updated</th>
-                    <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Action</th>
+                    <Th>Claim</Th>
+                    <Th>Vehicle</Th>
+                    <Th>Missing Document</Th>
+                    <Th>Handler</Th>
+                    <Th>Insurer</Th>
+                    <Th>Updated</Th>
+                    <Th className="text-right">Action</Th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -288,12 +289,12 @@ export function GlobalEvidenceView({ surveys }: { surveys: any[] }) {
               <table className="w-full text-left border-collapse bg-white">
                 <thead className="sticky top-0 bg-gray-50 shadow-sm z-10 border-b border-gray-200">
                   <tr>
-                    <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Claim</th>
-                    <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Vehicle</th>
-                    <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Issue</th>
-                    <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Handler</th>
-                    <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Updated</th>
-                    <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Action</th>
+                    <Th>Claim</Th>
+                    <Th>Vehicle</Th>
+                    <Th>Issue</Th>
+                    <Th>Handler</Th>
+                    <Th>Updated</Th>
+                    <Th className="text-right">Action</Th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -324,13 +325,13 @@ export function GlobalEvidenceView({ surveys }: { surveys: any[] }) {
               <table className="w-full text-left border-collapse bg-white">
                 <thead className="sticky top-0 bg-gray-50 shadow-sm z-10 border-b border-gray-200">
                   <tr>
-                    <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Claim</th>
-                    <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Docs</th>
-                    <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Photos</th>
-                    <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Handler</th>
-                    <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Updated</th>
-                    <th className="py-3 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Action</th>
+                    <Th>Claim</Th>
+                    <Th>Docs</Th>
+                    <Th>Photos</Th>
+                    <Th>Handler</Th>
+                    <Th>Status</Th>
+                    <Th>Updated</Th>
+                    <Th className="text-right">Action</Th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Bell, UserPlus, MoveRight, XCircle, Calendar, ChevronLeft, ChevronRight, MessageSquare } from 'lucide-react';
 import { Survey } from '../types';
+import { Button, Th } from './ui';
 
 interface ProgressSectionProps {
   title: string;
@@ -148,31 +149,31 @@ export function ProgressSection({
             </span>
             <div className="flex items-center gap-2">
               {onSendReminder && (
-                <button onClick={() => { onSendReminder(selectedRows); clearSelection(); }} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700 transition-colors shadow-sm">
+                <Button variant="primary-sm" onClick={() => { onSendReminder(selectedRows); clearSelection(); }}>
                   <Bell className="w-4 h-4" />
                   Send Reminder
-                </button>
+                </Button>
               )}
-              <button onClick={() => { onAssign(selectedRows); clearSelection(); }} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-indigo-200 rounded-md text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition-colors">
+              <Button variant="secondary" onClick={() => { onAssign(selectedRows); clearSelection(); }}>
                 <UserPlus className="w-4 h-4" />
                 Update Handler
-              </button>
+              </Button>
               {onUpdateStage && (
-                <button onClick={() => { onUpdateStage(selectedRows); clearSelection(); }} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-indigo-200 rounded-md text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition-colors">
+                <Button variant="secondary" onClick={() => { onUpdateStage(selectedRows); clearSelection(); }}>
                   <MoveRight className="w-4 h-4" />
                   Update Stage
-                </button>
+                </Button>
               )}
               {onAddComments && (
-                <button onClick={() => { onAddComments(selectedRows); clearSelection(); }} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-indigo-200 rounded-md text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition-colors">
+                <Button variant="secondary" onClick={() => { onAddComments(selectedRows); clearSelection(); }}>
                   <MessageSquare className="w-4 h-4" />
                   Add Comments
-                </button>
+                </Button>
               )}
-              <button onClick={() => { onCancel(selectedRows); clearSelection(); }} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-red-200 rounded-md text-sm font-medium text-red-700 hover:bg-red-50 transition-colors">
+              <Button variant="danger-sm" onClick={() => { onCancel(selectedRows); clearSelection(); }}>
                 <XCircle className="w-4 h-4" />
                 Cancel Claim
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -183,23 +184,23 @@ export function ProgressSection({
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50/50">
                 {!isReadOnly && (
-                  <th className="px-4 py-3 w-12 text-center sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">
-                    <input 
-                      type="checkbox" 
+                  <Th sticky className="w-12 text-center">
+                    <input
+                      type="checkbox"
                       className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                       checked={paginatedData.length > 0 && paginatedData.every(s => selectedRows.has(s.id))}
                       onChange={toggleAll}
                     />
-                  </th>
+                  </Th>
                 )}
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">Ref No</th>
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">Claim No</th>
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">Vehicle No</th>
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">Insurer Name</th>
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">Insured Name</th>
-                {type === 'docs' && <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">Documents</th>}
-                {type === 'photos' && <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">Photos</th>}
-                {type === 'progress' && <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">Current Stage</th>}
+                <Th sticky>Ref No</Th>
+                <Th sticky>Claim No</Th>
+                <Th sticky>Vehicle No</Th>
+                <Th sticky>Insurer Name</Th>
+                <Th sticky>Insured Name</Th>
+                {type === 'docs' && <Th sticky>Documents</Th>}
+                {type === 'photos' && <Th sticky>Photos</Th>}
+                {type === 'progress' && <Th sticky>Current Stage</Th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">

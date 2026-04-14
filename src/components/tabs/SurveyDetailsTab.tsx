@@ -3,6 +3,7 @@ import { Calendar, Clock, MapPin, User, Plus, CheckCircle2, AlertCircle, Info, E
 import { Survey } from '../../types';
 import { api } from '../../services/api';
 import toast from 'react-hot-toast';
+import { Button, Card, Modal, Input, Select, Textarea } from '../ui';
 
 interface ScheduledSurvey {
   id: string;
@@ -69,7 +70,7 @@ export function SurveyDetailsTab({ survey }: { survey: Survey }) {
     <div className="p-8 max-w-5xl mx-auto space-y-8">
       {/* VALIDATION FLAGS SECTION */}
       {survey.validationFlags && survey.validationFlags.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+        <Card>
           <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Validation Alerts</h3>
           <div className="space-y-3">
             {survey.validationFlags.map((flag, idx) => (
@@ -88,11 +89,11 @@ export function SurveyDetailsTab({ survey }: { survey: Survey }) {
               </div>
             ))}
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Intimation Summary Section */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+      <Card>
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
             <Info className="w-5 h-5" />
@@ -117,11 +118,11 @@ export function SurveyDetailsTab({ survey }: { survey: Survey }) {
             <p className="text-sm font-bold text-gray-900 mt-1">{survey.policyNumber}</p>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Overview Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+        <Card>
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
               <UserCircle className="w-5 h-5" />
@@ -142,9 +143,9 @@ export function SurveyDetailsTab({ survey }: { survey: Survey }) {
               </p>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+        <Card>
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
               <MapPin className="w-5 h-5" />
@@ -156,7 +157,7 @@ export function SurveyDetailsTab({ survey }: { survey: Survey }) {
           <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-semibold text-emerald-600 hover:text-emerald-700">
             View on Google Maps <ExternalLink className="w-4 h-4" />
           </a>
-        </div>
+        </Card>
       </div>
 
       {/* Scheduling Section */}
@@ -165,13 +166,10 @@ export function SurveyDetailsTab({ survey }: { survey: Survey }) {
           <h2 className="text-xl font-bold text-gray-900">Survey Scheduling</h2>
           <p className="text-gray-500 mt-1 text-sm">Manage and schedule different types of surveys for this claim.</p>
         </div>
-        <button 
-          onClick={() => setShowScheduleForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
-        >
+        <Button variant="primary" onClick={() => setShowScheduleForm(true)}>
           <Plus className="w-4 h-4" />
           Schedule New Survey
-        </button>
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -179,12 +177,12 @@ export function SurveyDetailsTab({ survey }: { survey: Survey }) {
         <div className="lg:col-span-2 space-y-4">
           <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Scheduled Surveys</h3>
           {scheduledSurveys.map((s) => (
-            <div key={s.id} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:border-indigo-200 transition-all group">
+            <Card key={s.id} padding="md" className="hover:border-indigo-200 transition-all group">
               <div className="flex items-start justify-between">
                 <div className="flex gap-4">
                   <div className={`p-3 rounded-xl ${
-                    s.status === 'completed' ? 'bg-emerald-50 text-emerald-600' : 
-                    s.status === 'cancelled' ? 'bg-rose-50 text-rose-600' : 
+                    s.status === 'completed' ? 'bg-emerald-50 text-emerald-600' :
+                    s.status === 'cancelled' ? 'bg-rose-50 text-rose-600' :
                     'bg-indigo-50 text-indigo-600'
                   }`}>
                     <Calendar className="w-6 h-6" />
@@ -193,8 +191,8 @@ export function SurveyDetailsTab({ survey }: { survey: Survey }) {
                     <div className="flex items-center gap-2">
                       <h4 className="font-bold text-gray-900">{s.type}</h4>
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        s.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 
-                        s.status === 'cancelled' ? 'bg-rose-100 text-rose-700' : 
+                        s.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
+                        s.status === 'cancelled' ? 'bg-rose-100 text-rose-700' :
                         'bg-indigo-100 text-indigo-700'
                       }`}>
                         {s.status}
@@ -220,7 +218,7 @@ export function SurveyDetailsTab({ survey }: { survey: Survey }) {
                   View Details
                 </button>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
 
@@ -238,7 +236,7 @@ export function SurveyDetailsTab({ survey }: { survey: Survey }) {
             <Calendar className="absolute -right-4 -bottom-4 w-32 h-32 text-white/5 rotate-12" />
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+          <Card padding="md">
             <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Survey Guidelines</h4>
             <div className="space-y-4">
               <div className="flex gap-3">
@@ -258,62 +256,60 @@ export function SurveyDetailsTab({ survey }: { survey: Survey }) {
                 </p>
               </div>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
 
       {/* Schedule Modal */}
-      {showScheduleForm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-              <h3 className="font-bold text-gray-900">Schedule New Survey</h3>
-              <button onClick={() => setShowScheduleForm(false)} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
-                <Plus className="w-5 h-5 rotate-45 text-gray-400" />
-              </button>
-            </div>
-            <form onSubmit={handleSchedule} className="p-6 space-y-4">
-              <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Survey Type</label>
-                <select className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
-                  {surveyTypes.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Date</label>
-                  <input type="date" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Time</label>
-                  <input type="time" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Surveyor</label>
-                <select 
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                  disabled={loadingUsers}
-                >
-                  <option value="">{loadingUsers ? 'Loading surveyors...' : 'Select surveyor...'}</option>
-                  {surveyors.map(s => (
-                    <option key={s.id} value={s.name}>{s.name} ({s.department})</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Location</label>
-                <textarea rows={2} placeholder="Enter full address..." className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none"></textarea>
-              </div>
-              <div className="pt-4">
-                <button type="submit" className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200">
-                  Confirm Schedule
-                </button>
-              </div>
-            </form>
-          </div>
+      <Modal
+        open={showScheduleForm}
+        onClose={() => setShowScheduleForm(false)}
+        blur
+        panelClassName="overflow-hidden rounded-2xl shadow-2xl"
+      >
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+          <h3 className="font-bold text-gray-900">Schedule New Survey</h3>
+          <button onClick={() => setShowScheduleForm(false)} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
+            <Plus className="w-5 h-5 rotate-45 text-gray-400" />
+          </button>
         </div>
-      )}
+        <form onSubmit={handleSchedule} className="p-6 space-y-4">
+          <div>
+            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Survey Type</label>
+            <Select className="bg-gray-50">
+              {surveyTypes.map(t => <option key={t} value={t}>{t}</option>)}
+            </Select>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Date</label>
+              <Input type="date" className="bg-gray-50" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Time</label>
+              <Input type="time" className="bg-gray-50" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Surveyor</label>
+            <Select disabled={loadingUsers} className="bg-gray-50">
+              <option value="">{loadingUsers ? 'Loading surveyors...' : 'Select surveyor...'}</option>
+              {surveyors.map(s => (
+                <option key={s.id} value={s.name}>{s.name} ({s.department})</option>
+              ))}
+            </Select>
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Location</label>
+            <Textarea rows={2} placeholder="Enter full address..." className="bg-gray-50" />
+          </div>
+          <div className="pt-4">
+            <button type="submit" className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200">
+              Confirm Schedule
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

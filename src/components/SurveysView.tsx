@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { ProgressSection } from './ProgressSection';
 import { GlobalEvidenceView } from './GlobalEvidenceView';
 import { GlobalDocsView } from './GlobalDocsView';
+import { Button, Th, Modal, Select, Textarea } from './ui';
 
 interface SurveysViewProps {
   surveys: Survey[];
@@ -494,13 +495,10 @@ export function SurveysView({ surveys, onSurveyClick, onUpdateSurvey, onCreateSu
                   </p>
                 </div>
                 {!isReadOnly && hasPermission('survey.create') && (
-                  <button
-                    onClick={onCreateSurvey}
-                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"
-                  >
+                  <Button variant="primary" onClick={onCreateSurvey}>
                     <Plus className="w-4 h-4" />
                     New Survey
-                  </button>
+                  </Button>
                 )}
               </div>
 
@@ -630,16 +628,16 @@ export function SurveysView({ surveys, onSurveyClick, onUpdateSurvey, onCreateSu
                     </span>
                     <div className="flex items-center gap-2">
                       {hasPermission('survey.assign') && (
-                        <button onClick={() => setAssignModalOpen(true)} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700 transition-colors shadow-sm">
+                        <Button variant="primary-sm" onClick={() => setAssignModalOpen(true)}>
                           <UserPlus className="w-4 h-4" />
                           Assign
-                        </button>
+                        </Button>
                       )}
                       {hasPermission('survey.stage') && (
-                        <button onClick={() => setCancelModalOpen(true)} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-red-200 rounded-md text-sm font-medium text-red-700 hover:bg-red-50 transition-colors">
+                        <Button variant="danger-sm" onClick={() => setCancelModalOpen(true)}>
                           <XCircle className="w-4 h-4" />
                           Cancel with Reason
-                        </button>
+                        </Button>
                       )}
                     </div>
                   </div>
@@ -651,29 +649,26 @@ export function SurveysView({ surveys, onSurveyClick, onUpdateSurvey, onCreateSu
                       {selectedRows.size} selected
                     </span>
                     <div className="flex items-center gap-2">
-                      <button
-                        onClick={handleSmartReminder}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700 transition-colors shadow-sm"
-                      >
+                      <Button variant="primary-sm" onClick={handleSmartReminder}>
                         <Bell className="w-4 h-4" />
                         Send Smart Reminder
-                      </button>
+                      </Button>
                       {hasPermission('survey.assign') && (
-                        <button onClick={() => setAssignModalOpen(true)} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-indigo-200 rounded-md text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition-colors">
+                        <Button variant="secondary" onClick={() => setAssignModalOpen(true)}>
                           <UserPlus className="w-4 h-4" />
                           Assign
-                        </button>
+                        </Button>
                       )}
                       {hasPermission('survey.stage') && (
-                        <button onClick={() => handleBulkAction('Stage moved')} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-indigo-200 rounded-md text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition-colors">
+                        <Button variant="secondary" onClick={() => handleBulkAction('Stage moved')}>
                           <MoveRight className="w-4 h-4" />
                           Move
-                        </button>
+                        </Button>
                       )}
-                      <button onClick={() => handleBulkAction('AI Inspection triggered')} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-indigo-200 rounded-md text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition-colors">
+                      <Button variant="secondary" onClick={() => handleBulkAction('AI Inspection triggered')}>
                         <Zap className="w-4 h-4" />
                         AI Inspect
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -684,34 +679,34 @@ export function SurveysView({ surveys, onSurveyClick, onUpdateSurvey, onCreateSu
                     <thead>
                       <tr className="border-b border-gray-200 bg-gray-50/50">
                         {!isReadOnly && (
-                          <th className="px-4 py-3 w-12 text-center sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">
-                            <input 
-                              type="checkbox" 
+                          <Th sticky className="w-12 text-center">
+                            <input
+                              type="checkbox"
                               className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                               checked={paginatedData.length > 0 && paginatedData.every(s => selectedRows.has(s.id))}
                               onChange={toggleAll}
                             />
-                          </th>
+                          </Th>
                         )}
                         {activeSubTab === 'new' ? (
                           <>
-                            <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">Ref No</th>
-                            <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">Claim Number</th>
-                            <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">Vehicle Number</th>
-                            <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">Insurer Name</th>
+                            <Th sticky>Ref No</Th>
+                            <Th sticky>Claim Number</Th>
+                            <Th sticky>Vehicle Number</Th>
+                            <Th sticky>Insurer Name</Th>
                           </>
                         ) : (
                           <>
-                            <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">Claim ID</th>
-                            <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">Vehicle Number</th>
-                            <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">Insurer</th>
-                            <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">RO</th>
-                            <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">Handler</th>
-                            <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">Stage</th>
-                            <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">Docs Status</th>
-                            <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">Photos Status</th>
-                            <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">AI Status</th>
-                            <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">Last Updated</th>
+                            <Th sticky>Claim ID</Th>
+                            <Th sticky>Vehicle Number</Th>
+                            <Th sticky>Insurer</Th>
+                            <Th sticky>RO</Th>
+                            <Th sticky>Handler</Th>
+                            <Th sticky>Stage</Th>
+                            <Th sticky>Docs Status</Th>
+                            <Th sticky>Photos Status</Th>
+                            <Th sticky>AI Status</Th>
+                            <Th sticky>Last Updated</Th>
                           </>
                         )}
                       </tr>
@@ -893,161 +888,125 @@ export function SurveysView({ surveys, onSurveyClick, onUpdateSurvey, onCreateSu
       )}
 
       {/* Assign Modal */}
-      {assignModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-900">Assign Handler</h3>
-              <button onClick={() => setAssignModalOpen(false)} className="text-gray-400 hover:text-gray-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <p className="text-sm text-gray-500 mb-4">Select a handler to assign to the {targetIds.size || selectedRows.size} selected claims.</p>
-            <select 
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-6 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
-              value={selectedHandler}
-              onChange={(e) => setSelectedHandler(e.target.value)}
-              disabled={loadingUsers}
-            >
-              <option value="">{loadingUsers ? 'Loading handlers...' : 'Select a handler...'}</option>
-              {handlers.map(handler => (
-                <option key={handler.id} value={handler.name}>{handler.name} ({handler.department})</option>
-              ))}
-            </select>
-            <div className="flex justify-end gap-3">
-              <button onClick={() => { setAssignModalOpen(false); setTargetIds(new Set()); }} className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">Cancel</button>
-              <button 
-                onClick={() => {
-                  if (!selectedHandler) return toast.error('Please select a handler');
-                  handleBulkAction(`Assigned to ${selectedHandler}`, targetIds.size > 0 ? targetIds : undefined);
-                  setAssignModalOpen(false);
-                  setSelectedHandler('');
-                }} 
-                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
-              >
-                Confirm Assignment
-              </button>
-            </div>
-          </div>
+      <Modal open={assignModalOpen} onClose={() => { setAssignModalOpen(false); setTargetIds(new Set()); }}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-gray-900">Assign Handler</h3>
+          <button onClick={() => setAssignModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+            <X className="w-5 h-5" />
+          </button>
         </div>
-      )}
+        <p className="text-sm text-gray-500 mb-4">Select a handler to assign to the {targetIds.size || selectedRows.size} selected claims.</p>
+        <Select
+          className="mb-6"
+          value={selectedHandler}
+          onChange={(e) => setSelectedHandler(e.target.value)}
+          disabled={loadingUsers}
+        >
+          <option value="">{loadingUsers ? 'Loading handlers...' : 'Select a handler...'}</option>
+          {handlers.map(handler => (
+            <option key={handler.id} value={handler.name}>{handler.name} ({handler.department})</option>
+          ))}
+        </Select>
+        <div className="flex justify-end gap-3">
+          <Button variant="ghost" onClick={() => { setAssignModalOpen(false); setTargetIds(new Set()); }}>Cancel</Button>
+          <Button variant="confirm" onClick={() => {
+            if (!selectedHandler) return toast.error('Please select a handler');
+            handleBulkAction(`Assigned to ${selectedHandler}`, targetIds.size > 0 ? targetIds : undefined);
+            setAssignModalOpen(false);
+            setSelectedHandler('');
+          }}>
+            Confirm Assignment
+          </Button>
+        </div>
+      </Modal>
 
       {/* Cancel Modal */}
-      {cancelModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-900">Cancel Claims</h3>
-              <button onClick={() => { setCancelModalOpen(false); setTargetIds(new Set()); }} className="text-gray-400 hover:text-gray-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <p className="text-sm text-gray-500 mb-4">Please provide a reason for cancelling the {targetIds.size || selectedRows.size} selected claims.</p>
-            <select 
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-6 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
-              value={cancelReason}
-              onChange={(e) => setCancelReason(e.target.value)}
-            >
-              <option value="">Select a reason...</option>
-              <option value="Duplicate Claim">Duplicate Claim</option>
-              <option value="Customer Requested Cancellation">Customer Requested Cancellation</option>
-              <option value="Invalid Vehicle Details">Invalid Vehicle Details</option>
-              <option value="Coverage Expired">Coverage Expired</option>
-              <option value="Other">Other</option>
-            </select>
-            <div className="flex justify-end gap-3">
-              <button onClick={() => { setCancelModalOpen(false); setTargetIds(new Set()); }} className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">Go Back</button>
-              <button 
-                onClick={() => {
-                  if (!cancelReason) return toast.error('Please select a reason');
-                  handleBulkAction(`Cancelled: ${cancelReason}`, targetIds.size > 0 ? targetIds : undefined);
-                  setCancelModalOpen(false);
-                  setCancelReason('');
-                }} 
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
-              >
-                Confirm Cancellation
-              </button>
-            </div>
-          </div>
+      <Modal open={cancelModalOpen} onClose={() => { setCancelModalOpen(false); setTargetIds(new Set()); }}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-gray-900">Cancel Claims</h3>
+          <button onClick={() => { setCancelModalOpen(false); setTargetIds(new Set()); }} className="text-gray-400 hover:text-gray-600">
+            <X className="w-5 h-5" />
+          </button>
         </div>
-      )}
+        <p className="text-sm text-gray-500 mb-4">Please provide a reason for cancelling the {targetIds.size || selectedRows.size} selected claims.</p>
+        <Select className="mb-6" value={cancelReason} onChange={(e) => setCancelReason(e.target.value)}>
+          <option value="">Select a reason...</option>
+          <option value="Duplicate Claim">Duplicate Claim</option>
+          <option value="Customer Requested Cancellation">Customer Requested Cancellation</option>
+          <option value="Invalid Vehicle Details">Invalid Vehicle Details</option>
+          <option value="Coverage Expired">Coverage Expired</option>
+          <option value="Other">Other</option>
+        </Select>
+        <div className="flex justify-end gap-3">
+          <Button variant="ghost" onClick={() => { setCancelModalOpen(false); setTargetIds(new Set()); }}>Go Back</Button>
+          <Button variant="danger" onClick={() => {
+            if (!cancelReason) return toast.error('Please select a reason');
+            handleBulkAction(`Cancelled: ${cancelReason}`, targetIds.size > 0 ? targetIds : undefined);
+            setCancelModalOpen(false);
+            setCancelReason('');
+          }}>
+            Confirm Cancellation
+          </Button>
+        </div>
+      </Modal>
 
       {/* Update Stage Modal */}
-      {updateStageModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-900">Update Stage</h3>
-              <button onClick={() => { setUpdateStageModalOpen(false); setTargetIds(new Set()); }} className="text-gray-400 hover:text-gray-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <p className="text-sm text-gray-500 mb-4">Select the new stage for the {targetIds.size} selected claims.</p>
-            <select 
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-6 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
-              value={newStage}
-              onChange={(e) => setNewStage(e.target.value)}
-            >
-              <option value="">Select a stage...</option>
-              <option value="Survey Create/Intake">Survey Create/Intake</option>
-              <option value="Evidence Collection">Evidence Collection</option>
-              <option value="Inspection, Assessment & repair">Inspection, Assessment & repair</option>
-              <option value="Settlement Stage">Settlement Stage</option>
-              <option value="Closing stage">Closing stage</option>
-            </select>
-            <div className="flex justify-end gap-3">
-              <button onClick={() => { setUpdateStageModalOpen(false); setTargetIds(new Set()); }} className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">Cancel</button>
-              <button 
-                onClick={() => {
-                  if (!newStage) return toast.error('Please select a stage');
-                  handleBulkAction(`Stage updated to ${newStage}`, targetIds);
-                  setUpdateStageModalOpen(false);
-                  setNewStage('');
-                }} 
-                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
-              >
-                Update Stage
-              </button>
-            </div>
-          </div>
+      <Modal open={updateStageModalOpen} onClose={() => { setUpdateStageModalOpen(false); setTargetIds(new Set()); }}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-gray-900">Update Stage</h3>
+          <button onClick={() => { setUpdateStageModalOpen(false); setTargetIds(new Set()); }} className="text-gray-400 hover:text-gray-600">
+            <X className="w-5 h-5" />
+          </button>
         </div>
-      )}
+        <p className="text-sm text-gray-500 mb-4">Select the new stage for the {targetIds.size} selected claims.</p>
+        <Select className="mb-6" value={newStage} onChange={(e) => setNewStage(e.target.value)}>
+          <option value="">Select a stage...</option>
+          <option value="Survey Create/Intake">Survey Create/Intake</option>
+          <option value="Evidence Collection">Evidence Collection</option>
+          <option value="Inspection, Assessment & repair">Inspection, Assessment & repair</option>
+          <option value="Settlement Stage">Settlement Stage</option>
+          <option value="Closing stage">Closing stage</option>
+        </Select>
+        <div className="flex justify-end gap-3">
+          <Button variant="ghost" onClick={() => { setUpdateStageModalOpen(false); setTargetIds(new Set()); }}>Cancel</Button>
+          <Button variant="confirm" onClick={() => {
+            if (!newStage) return toast.error('Please select a stage');
+            handleBulkAction(`Stage updated to ${newStage}`, targetIds);
+            setUpdateStageModalOpen(false);
+            setNewStage('');
+          }}>
+            Update Stage
+          </Button>
+        </div>
+      </Modal>
 
       {/* Add Comments Modal */}
-      {addCommentsModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-900">Add Comments</h3>
-              <button onClick={() => { setAddCommentsModalOpen(false); setTargetIds(new Set()); }} className="text-gray-400 hover:text-gray-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <p className="text-sm text-gray-500 mb-4">Add a comment to the {targetIds.size} selected claims.</p>
-            <textarea 
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-6 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white h-32 resize-none"
-              placeholder="Enter your comments here..."
-              value={comments}
-              onChange={(e) => setComments(e.target.value)}
-            />
-            <div className="flex justify-end gap-3">
-              <button onClick={() => { setAddCommentsModalOpen(false); setTargetIds(new Set()); }} className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">Cancel</button>
-              <button 
-                onClick={() => {
-                  if (!comments.trim()) return toast.error('Please enter a comment');
-                  handleBulkAction('Comments added', targetIds);
-                  setAddCommentsModalOpen(false);
-                  setComments('');
-                }} 
-                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
-              >
-                Save Comments
-              </button>
-            </div>
-          </div>
+      <Modal open={addCommentsModalOpen} onClose={() => { setAddCommentsModalOpen(false); setTargetIds(new Set()); }}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-gray-900">Add Comments</h3>
+          <button onClick={() => { setAddCommentsModalOpen(false); setTargetIds(new Set()); }} className="text-gray-400 hover:text-gray-600">
+            <X className="w-5 h-5" />
+          </button>
         </div>
-      )}
+        <p className="text-sm text-gray-500 mb-4">Add a comment to the {targetIds.size} selected claims.</p>
+        <Textarea
+          className="mb-6 h-32 resize-none"
+          placeholder="Enter your comments here..."
+          value={comments}
+          onChange={(e) => setComments(e.target.value)}
+        />
+        <div className="flex justify-end gap-3">
+          <Button variant="ghost" onClick={() => { setAddCommentsModalOpen(false); setTargetIds(new Set()); }}>Cancel</Button>
+          <Button variant="confirm" onClick={() => {
+            if (!comments.trim()) return toast.error('Please enter a comment');
+            handleBulkAction('Comments added', targetIds);
+            setAddCommentsModalOpen(false);
+            setComments('');
+          }}>
+            Save Comments
+          </Button>
+        </div>
+      </Modal>
 
     </div>
   );

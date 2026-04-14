@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { AlertCircle, Plus, UploadCloud, FolderOpen, FileText, CheckCircle2, AlertTriangle, Clock, Activity, Users, ShieldAlert, BarChart3 } from 'lucide-react';
 import { Survey } from '../types';
+import { Card } from './ui';
 import {
   BarChart,
   Bar,
@@ -172,7 +173,7 @@ export function HomeView({ surveys, onNavigate, onCreateSurvey }: HomeViewProps)
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Key Metrics</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   
-                  <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => onNavigate('surveys')}>
+                  <Card padding="md" className="hover:shadow-md transition-shadow" onClick={() => onNavigate('surveys')}>
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-sm font-medium text-gray-500">Outstanding Claims</h3>
                       <Activity className="w-5 h-5 text-indigo-500" />
@@ -184,9 +185,9 @@ export function HomeView({ surveys, onNavigate, onCreateSurvey }: HomeViewProps)
                       <div className="flex justify-between"><span>M-2</span><span className="font-medium text-gray-700">7</span></div>
                       <div className="flex justify-between"><span>Older</span><span className="font-medium text-gray-700">3</span></div>
                     </div>
-                  </div>
+                  </Card>
 
-                  <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => onNavigate('surveys')}>
+                  <Card padding="md" className="hover:shadow-md transition-shadow" onClick={() => onNavigate('surveys')}>
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-sm font-medium text-gray-500">Claims Pending Docs</h3>
                       <FolderOpen className="w-5 h-5 text-amber-500" />
@@ -198,9 +199,9 @@ export function HomeView({ surveys, onNavigate, onCreateSurvey }: HomeViewProps)
                       <div className="flex justify-between"><span>M-2</span><span className="font-medium text-gray-700">2</span></div>
                       <div className="flex justify-between"><span>Older</span><span className="font-medium text-gray-700">0</span></div>
                     </div>
-                  </div>
+                  </Card>
 
-                  <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => onNavigate('surveys')}>
+                  <Card padding="md" className="hover:shadow-md transition-shadow" onClick={() => onNavigate('surveys')}>
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-sm font-medium text-gray-500">Claims Awaiting Approval</h3>
                       <ShieldAlert className="w-5 h-5 text-blue-500" />
@@ -212,9 +213,9 @@ export function HomeView({ surveys, onNavigate, onCreateSurvey }: HomeViewProps)
                       <div className="flex justify-between"><span>M-2</span><span className="font-medium text-gray-700">1</span></div>
                       <div className="flex justify-between"><span>Older</span><span className="font-medium text-gray-700">0</span></div>
                     </div>
-                  </div>
+                  </Card>
 
-                  <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => onNavigate('surveys')}>
+                  <Card padding="md" className="hover:shadow-md transition-shadow" onClick={() => onNavigate('surveys')}>
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-sm font-medium text-gray-500">SLA Breach Count</h3>
                       <AlertCircle className="w-5 h-5 text-red-500" />
@@ -226,7 +227,7 @@ export function HomeView({ surveys, onNavigate, onCreateSurvey }: HomeViewProps)
                       <div className="flex justify-between"><span>M-2</span><span className="font-medium text-gray-700">2</span></div>
                       <div className="flex justify-between"><span>Older</span><span className="font-medium text-gray-700">0</span></div>
                     </div>
-                  </div>
+                  </Card>
 
                 </div>
               </section>
@@ -258,7 +259,7 @@ export function HomeView({ surveys, onNavigate, onCreateSurvey }: HomeViewProps)
 
               {/* Dashboard Widgets */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex items-center justify-between">
+                <Card padding="md" className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-500">Team Surveys</p>
                     <p className="text-2xl font-bold text-gray-900 mt-1">{totalActive}</p>
@@ -266,8 +267,8 @@ export function HomeView({ surveys, onNavigate, onCreateSurvey }: HomeViewProps)
                   <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center">
                     <Users className="w-5 h-5 text-indigo-600" />
                   </div>
-                </div>
-                <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex items-center justify-between">
+                </Card>
+                <Card padding="md" className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-500">Docs Pending</p>
                     <p className="text-2xl font-bold text-gray-900 mt-1">{pendingDocsCount}</p>
@@ -275,8 +276,8 @@ export function HomeView({ surveys, onNavigate, onCreateSurvey }: HomeViewProps)
                   <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center">
                     <FolderOpen className="w-5 h-5 text-amber-600" />
                   </div>
-                </div>
-                <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex items-center justify-between">
+                </Card>
+                <Card padding="md" className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-500">AI Queue</p>
                     <p className="text-2xl font-bold text-gray-900 mt-1">{aiQueueCount}</p>
@@ -284,8 +285,8 @@ export function HomeView({ surveys, onNavigate, onCreateSurvey }: HomeViewProps)
                   <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center">
                     <Activity className="w-5 h-5 text-purple-600" />
                   </div>
-                </div>
-                <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex items-center justify-between">
+                </Card>
+                <Card padding="md" className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-500">Avg Turnaround</p>
                     <p className="text-2xl font-bold text-gray-900 mt-1">2.4 Days</p>
@@ -293,12 +294,12 @@ export function HomeView({ surveys, onNavigate, onCreateSurvey }: HomeViewProps)
                   <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center">
                     <Clock className="w-5 h-5 text-emerald-600" />
                   </div>
-                </div>
+                </Card>
               </div>
 
               {/* Charts */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                <Card>
                   <h3 className="text-base font-semibold text-gray-900 mb-6">Team Surveys by Stage</h3>
                   <div className="h-72">
                     <ResponsiveContainer width="100%" height="100%">
@@ -314,9 +315,9 @@ export function HomeView({ surveys, onNavigate, onCreateSurvey }: HomeViewProps)
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
-                </div>
+                </Card>
 
-                <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                <Card>
                   <h3 className="text-base font-semibold text-gray-900 mb-6">Survey Aging</h3>
                   <div className="h-72 flex items-center justify-center">
                     <ResponsiveContainer width="100%" height="100%">
@@ -349,11 +350,11 @@ export function HomeView({ surveys, onNavigate, onCreateSurvey }: HomeViewProps)
                       ))}
                     </div>
                   </div>
-                </div>
+                </Card>
               </div>
 
               {/* Bottom Row */}
-              <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+              <Card>
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-base font-semibold text-gray-900">Handler Productivity</h3>
                   <button className="text-sm font-medium text-indigo-600 hover:text-indigo-700">View All</button>
@@ -400,7 +401,7 @@ export function HomeView({ surveys, onNavigate, onCreateSurvey }: HomeViewProps)
                     </tbody>
                   </table>
                 </div>
-              </div>
+              </Card>
             </>
           )}
         </div>

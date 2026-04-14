@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Survey, DocumentDef, ImageDef, MatchedRule } from '../../types';
 import { FileText, CheckCircle2, AlertCircle, Download, UploadCloud, Loader2, ShieldCheck, ShieldAlert, RefreshCw, Link as LinkIcon, Smartphone, FileCheck, Plus, Eye, MoreVertical, Edit3, X, Image as ImageIcon, Camera, ChevronLeft, ChevronRight, Check, Bell, ShieldOff } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Modal } from '../ui';
 import { api } from '../../services/api';
 import { INITIAL_DOCS } from '../../data/documents';
 import { INITIAL_SURVEY_PROFILES } from '../../data/surveyProfiles';
@@ -993,9 +994,8 @@ export function DocsTab({ survey, onUpdateSurvey, userRole }: { survey: Survey, 
       )}
 
       {/* Mark Collection Complete Modal */}
-      {showCompleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => { setShowCompleteModal(false); setCompleteReason(''); }}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6 space-y-5" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+      <Modal open={showCompleteModal} onClose={() => { setShowCompleteModal(false); setCompleteReason(''); }} blur closeOnOverlayClick maxWidth="lg" panelClassName="rounded-2xl shadow-2xl">
+          <div className="p-6 space-y-5">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
@@ -1061,13 +1061,11 @@ export function DocsTab({ survey, onUpdateSurvey, userRole }: { survey: Survey, 
               </button>
             </div>
           </div>
-        </div>
-      )}
+      </Modal>
 
       {/* Override Modal */}
-      {overrideTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => { setOverrideTarget(null); setOverrideReason(''); }}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 space-y-5" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+      <Modal open={!!overrideTarget} onClose={() => { setOverrideTarget(null); setOverrideReason(''); }} blur closeOnOverlayClick maxWidth="md" panelClassName="rounded-2xl shadow-2xl">
+          <div className="p-6 space-y-5">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
@@ -1109,8 +1107,7 @@ export function DocsTab({ survey, onUpdateSurvey, userRole }: { survey: Survey, 
               </button>
             </div>
           </div>
-        </div>
-      )}
+      </Modal>
     </div>
   );
 }

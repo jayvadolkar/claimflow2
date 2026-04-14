@@ -1,9 +1,9 @@
 import React from 'react';
-import { Bell, Settings, LogOut } from 'lucide-react';
+import { Bell, Settings, LogOut, Plus } from 'lucide-react';
 import { GlobalSearch } from './GlobalSearch';
 import { UserRole } from '../types';
 import { useRBAC } from '../hooks/useRBAC';
-import { Plus } from 'lucide-react';
+import { Button } from './ui';
 
 interface TopBarProps {
   onSettingsClick?: () => void;
@@ -31,13 +31,10 @@ export function TopBar({ onSettingsClick, userRole, userName, onLogout, currentV
       </div>
       <div className="flex items-center gap-4 ml-4">
         {currentView === 'intimation' && (
-          <button
-            onClick={onCreateSurvey}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm mr-2"
-          >
+          <Button variant="primary" onClick={onCreateSurvey} className="mr-2">
             <Plus className="w-4 h-4" />
             New Survey
-          </button>
+          </Button>
         )}
         <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors relative">
           <Bell className="w-5 h-5" />
