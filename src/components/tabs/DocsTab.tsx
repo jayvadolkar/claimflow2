@@ -1073,7 +1073,7 @@ export function DocsTab({ survey, onUpdateSurvey, userRole }: { survey: Survey, 
                   <h3 className="text-base font-black text-gray-900">Override Document</h3>
                 </div>
                 <p className="text-xs text-gray-500">
-                  Waiving <span className="font-bold text-gray-700">{overrideTarget.name}</span> marks it as overridden so the workflow can proceed without it.
+                  Waiving <span className="font-bold text-gray-700">{overrideTarget?.name}</span> marks it as overridden so the workflow can proceed without it.
                 </p>
               </div>
               <button onClick={() => { setOverrideTarget(null); setOverrideReason(''); }} className="p-1 text-gray-400 hover:text-gray-700"><X className="w-5 h-5" /></button>
