@@ -92,7 +92,7 @@ interface EventTriggersViewProps {
   isSuperAdmin?: boolean;
 }
 
-type ScreenMode = 'dashboard' | 'select-event' | 'trigger-config';
+type ScreenMode = 'dashboard' | 'select-event' | 'trigger-config' | 'trigger-detail';
 
 export function EventTriggersView({ isSuperAdmin = true }: EventTriggersViewProps) {
   const [triggers, setTriggers] = useState<EventTrigger[]>(INITIAL_TRIGGERS);
@@ -104,10 +104,11 @@ export function EventTriggersView({ isSuperAdmin = true }: EventTriggersViewProp
   const [collapsed, setCollapsed] = useState<Record<StageId, boolean>>({
     intake: false, evidence: false, inspection: false, settlement: false, closing: false,
   });
-  const [openMenu, setOpenMenu] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const [screenMode, setScreenMode] = useState<ScreenMode>('dashboard');
-  const [activeEvent, setActiveEvent] = useState<SystemEvent | null>(null);
+  const [openMenu,         setOpenMenu]         = useState<string | null>(null);
+  const [page,             setPage]             = useState(1);
+  const [screenMode,       setScreenMode]       = useState<ScreenMode>('dashboard');
+  const [activeEvent,      setActiveEvent]      = useState<SystemEvent | null>(null);
+  const [selectedTriggerId, setSelectedTriggerId] = useState<string | null>(null);
   const PAGE_SIZE = 10;
 
   const hasFilters = !!(search || filterType.length || filterStatus.length || filterChannels.length || filterStages.length);
@@ -170,33 +171,96 @@ export function EventTriggersView({ isSuperAdmin = true }: EventTriggersViewProp
   };
 
   const handleSaveTrigger = (draft: { name: string; description: string; status: 'active' | 'inactive'; event: SystemEvent; blocks: any[] }) => {
-    const newTrigger: EventTrigger = {
-      id: `trg-${Date.now()}`,
-      name: draft.name,
-      event: {
-        display: draft.event.display, machine: draft.event.machine,
-        stage: 'intake',
-        type: 'realtime'
-      },
-      type: draft.event.type,
-      status: draft.status,
-      channels: draft.blocks.flatMap(b => b.channels as TriggerChannel[])
-        .filter((c, i, arr) => arr.indexOf(c) === i),
-      blockCount: draft.blocks.length,
-      lastModified: { actor: 'Admin', at: new Date().toISOString() },
-      stage: draft.event.stage,
-    };
-    setTriggers(prev => [...prev, newTrigger]);
+    const isEdit = !!selectedTriggerId;
+    const uniqueChannels = draft.blocks
+      .flatMap(b => b.channels as TriggerChannel[])
+      .filter((c, i, arr) => arr.indexOf(c) === i);
+
+    if (isEdit) {
+      setTriggers(prev => prev.map(t => t.id !== selectedTriggerId ? t : {
+        ...t,
+        name:         draft.name,
+        status:       draft.status,
+        channels:     uniqueChannels,
+        blockCount:   draft.blocks.length,
+        lastModified: { actor: 'Admin', at: new Date().toISOString() },
+        fullConfig:   draft,
+      }));
+      toast.success('Trigger updated');
+    } else {
+      const newTrigger: EventTrigger = {
+        id:           `trg-${Date.now()}`,
+        name:         draft.name,
+        event:        { display: draft.event.display, machine: draft.event.machine, stage: draft.event.stage, type: draft.event.type },
+        type:         draft.event.type,
+        status:       draft.status,
+        channels:     uniqueChannels,
+        blockCount:   draft.blocks.length,
+        lastModified: { actor: 'Admin', at: new Date().toISOString() },
+        stage:        draft.event.stage,
+        fullConfig:   draft,
+      };
+      setTriggers(prev => [...prev, newTrigger]);
+    }
     setScreenMode('dashboard');
     setActiveEvent(null);
+    setSelectedTriggerId(null);
+  };
+
+  const handleOpenDetail = (id: string) => {
+    setSelectedTriggerId(id);
+    setScreenMode('trigger-detail');
+  };
+
+  const handleEditTrigger = (id: string) => {
+    const t = triggers.find(x => x.id === id);
+    if (!t) return;
+    setSelectedTriggerId(id);
+    // Reconstruct a SystemEvent from the trigger's event data for the config screen
+    const syntheticEvent: SystemEvent = {
+      id:      t.id,
+      display: t.event.display,
+      machine: t.event.machine,
+      type:    t.event.type,
+      stage:   t.event.stage,
+    };
+    setActiveEvent(syntheticEvent);
+    setScreenMode('trigger-config');
   };
 
   // ── Screen routing ─────────────────────────────────────────────────────────
+  if (screenMode === 'trigger-detail' && selectedTriggerId) {
+    const t = triggers.find(x => x.id === selectedTriggerId);
+    if (t) {
+      const record: TriggerRecord = {
+        id:           t.id,
+        name:         t.name,
+        event:        t.event,
+        status:       t.status,
+        channels:     t.channels,
+        blockCount:   t.blockCount,
+        lastModified: t.lastModified,
+        fullConfig:   t.fullConfig,
+      };
+      return (
+        <TriggerDetailView
+          trigger={record}
+          onBack={() => { setScreenMode('dashboard'); setSelectedTriggerId(null); }}
+          onEdit={() => handleEditTrigger(t.id)}
+        />
+      );
+    }
+  }
+
   if (screenMode === 'trigger-config' && activeEvent) {
+    const existing = selectedTriggerId
+      ? triggers.find(x => x.id === selectedTriggerId)?.fullConfig
+      : undefined;
     return (
       <TriggerConfigScreen
         event={activeEvent}
-        onBack={() => { setScreenMode('dashboard'); setActiveEvent(null); }}
+        existing={existing}
+        onBack={() => { setScreenMode('dashboard'); setActiveEvent(null); setSelectedTriggerId(null); }}
         onSave={handleSaveTrigger}
       />
     );
@@ -350,6 +414,8 @@ export function EventTriggersView({ isSuperAdmin = true }: EventTriggersViewProp
                           setOpenMenu={setOpenMenu}
                           onToggleStatus={toggleStatus}
                           onDelete={deleteTrigger}
+                          onViewDetail={handleOpenDetail}
+                          onEdit={handleEditTrigger}
                         />
                       ))}
                     </tbody>
@@ -397,7 +463,7 @@ export function EventTriggersView({ isSuperAdmin = true }: EventTriggersViewProp
 
 // ── Trigger row ───────────────────────────────────────────────────────────────
 function TriggerRow({
-  trigger, isSuperAdmin, openMenu, setOpenMenu, onToggleStatus, onDelete,
+  trigger, isSuperAdmin, openMenu, setOpenMenu, onToggleStatus, onDelete, onViewDetail, onEdit,
 }: {
   key?: string;
   trigger: EventTrigger;
@@ -406,6 +472,8 @@ function TriggerRow({
   setOpenMenu: (id: string | null) => void;
   onToggleStatus: (id: string) => void;
   onDelete: (id: string) => void;
+  onViewDetail: (id: string) => void;
+  onEdit: (id: string) => void;
 }) {
   const menuRef = useRef<HTMLDivElement>(null);
   const isMenuOpen = openMenu === trigger.id;
@@ -425,7 +493,12 @@ function TriggerRow({
 
       {/* Trigger Name */}
       <td className="pl-5 pr-4 py-3.5 align-middle">
-        <p className="text-sm font-semibold text-gray-900 leading-tight whitespace-nowrap">{trigger.name}</p>
+        <button
+          onClick={() => onViewDetail(trigger.id)}
+          className="text-sm font-semibold text-gray-900 leading-tight whitespace-nowrap hover:text-indigo-600 hover:underline transition-colors text-left"
+        >
+          {trigger.name}
+        </button>
         {noActions && (
           <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-500 mt-0.5">
             <AlertCircle className="w-3 h-3 shrink-0" /> No Actions Configured
@@ -522,7 +595,7 @@ function TriggerRow({
               <MenuAction
                 icon={<Edit3 className="w-3.5 h-3.5 text-gray-400" />}
                 label="Edit"
-                onClick={() => { setOpenMenu(null); toast('Trigger editor — coming next'); }}
+                onClick={() => { setOpenMenu(null); onEdit(trigger.id); }}
               />
               <MenuAction
                 icon={<Power className="w-3.5 h-3.5 text-gray-400" />}
